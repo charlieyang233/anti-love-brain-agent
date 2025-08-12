@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>拽姐 - 反恋爱脑闺蜜 Agent</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 800px;
+            height: 90vh;
+            max-height: 700px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #c084fc 0%, #e879f9 100%);
+            padding: 20px 24px;
+            color: white;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header-content {
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .persona-status {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .new-session-button {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .new-session-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .chat-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .chat-title {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .chat-subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            background: linear-gradient(180deg, rgba(248, 250, 252, 0.8) 0%, rgba(241, 245, 249, 0.9) 100%);
+        }
+
+        .message {
+            display: flex;
+            gap: 12px;
+            max-width: 85%;
+            animation: messageSlide 0.3s ease-out;
+        }
+
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message.ai {
+            align-self: flex-start;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+            color: white;
+        }
+
+        .message.seaking .message-avatar {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .message.seaking .message-content {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: #dc2626;
+            font-weight: 500;
+        }
+
+        .message.ai .message-avatar {
+            background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+            color: white;
+        }
+
+        .message.system .message-avatar {
+            width: 32px;
+            height: 32px;
+            font-size: 12px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+        }
+
+        .message-content {
+            padding: 16px 20px;
+            border-radius: 20px;
+            line-height: 1.6;
+            font-size: 15px;
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+            color: white;
+            border-bottom-right-radius: 8px;
+        }
+
+        .message.ai .message-content {
+            background: white;
+            color: #374151;
+            border: 1px solid rgba(139, 92, 246, 0.1);
+            border-bottom-left-radius: 8px;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.1);
+        }
+
+        .message.system {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            margin: 10px 0;
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .message.system .message-content {
+            color: #6366f1;
+            font-style: italic;
+            font-size: 14px;
+            text-align: left;
+            background: rgba(99, 102, 241, 0.05);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+        }
+
+        .message.system .message-avatar {
+            width: 32px;
+            height: 32px;
+            font-size: 12px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 16px 20px;
+            background: white;
+            border-radius: 20px;
+            border-bottom-left-radius: 8px;
+            border: 1px solid rgba(139, 92, 246, 0.1);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.1);
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #c084fc;
+            animation: typingDot 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingDot {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.4;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+
+        .chat-input-container {
+            padding: 20px 24px;
+            background: white;
+            border-top: 1px solid rgba(139, 92, 246, 0.1);
+        }
+
+        .chat-input-wrapper {
+            position: relative;
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 16px 20px;
+            border: 2px solid rgba(139, 92, 246, 0.2);
+            border-radius: 24px;
+            font-size: 15px;
+            font-family: inherit;
+            outline: none;
+            resize: none;
+            min-height: 24px;
+            max-height: 120px;
+            transition: all 0.2s ease;
+            background: rgba(248, 250, 252, 0.8);
+        }
+
+        .chat-input:focus {
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+            background: white;
+        }
+
+        .send-button {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .send-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
+        }
+
+        .send-button:active {
+            transform: scale(0.95);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .persona-selector {
+            margin-bottom: 12px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .persona-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #6b7280;
+        }
+
+        .persona-option {
+            padding: 6px 12px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 16px;
+            font-size: 13px;
+            background: rgba(248, 250, 252, 0.8);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .persona-option:hover {
+            background: rgba(139, 92, 246, 0.1);
+            border-color: #8b5cf6;
+        }
+
+        .persona-option.active {
+            background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .typewriter {
+            overflow: hidden;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1.2em;
+            background: #8b5cf6;
+            margin-left: 2px;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .chat-container {
+                height: 95vh;
+                border-radius: 16px;
+            }
+            
+            .chat-header {
+                padding: 16px 20px;
+            }
+            
+            .chat-title {
+                font-size: 24px;
+            }
+            
+            .chat-messages {
+                padding: 16px;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+            
+            .persona-selector {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+        }
+
+        /* 滚动条样式 */
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 3px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(139, 92, 246, 0.3);
+            border-radius: 3px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: rgba(139, 92, 246, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="header-content">
+                <div class="chat-title">拽姐 💜</div>
+                <div class="chat-subtitle">你的反恋爱脑闺蜜 - 毒舌但理智的情感顾问</div>
+            </div>
+            <div class="header-actions">
+                <span id="personaDisplay" class="persona-status">正常聊天</span>
+                <button class="new-session-button" id="newSessionButton">🔄 新会话</button>
+            </div>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="message ai">
+                <div class="message-avatar">拽</div>
+                <div class="message-content">
+                    <div class="typewriter" id="welcomeMessage"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-input-container">
+            <div class="persona-selector">
+                <span class="persona-label">模式:</span>
+                <div class="persona-option active" data-persona="">正常聊天</div>
+                <div class="persona-option" data-persona="高冷学霸型">海王模拟-学霸</div>
+                <div class="persona-option" data-persona="温柔暖男型">海王模拟-暖男</div>
+                <div class="persona-option" data-persona="霸道总裁型">海王模拟-总裁</div>
+            </div>
+            <div class="chat-input-wrapper">
+                <textarea 
+                    id="chatInput" 
+                    class="chat-input" 
+                    placeholder="跟拽姐说说你的困扰吧..."
+                    rows="1"
+                ></textarea>
+                <button id="sendButton" class="send-button">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22,2 15,22 11,13 2,9 22,2"></polygon>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class ChatInterface {
+            constructor() {
+                this.chatMessages = document.getElementById('chatMessages');
+                this.chatInput = document.getElementById('chatInput');
+                this.sendButton = document.getElementById('sendButton');
+                this.currentPersona = '';
+                this.isTyping = false;
+                
+                this.initializeEventListeners();
+                this.initializePersonaSelector();
+                this.typeWelcomeMessage();
+            }
+
+            initializeEventListeners() {
+                // 发送按钮点击
+                this.sendButton.addEventListener('click', () => this.sendMessage());
+                
+                // 回车发送
+                this.chatInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.sendMessage();
+                    }
+                });
+
+                // 自动调整输入框高度
+                this.chatInput.addEventListener('input', () => {
+                    this.chatInput.style.height = 'auto';
+                    this.chatInput.style.height = Math.min(this.chatInput.scrollHeight, 120) + 'px';
+                });
+
+                // 新会话按钮
+                const newSessionButton = document.getElementById('newSessionButton');
+                newSessionButton.addEventListener('click', () => this.startNewSession());
+            }
+
+            initializePersonaSelector() {
+                const personaOptions = document.querySelectorAll('.persona-option');
+                const personaDisplay = document.getElementById('personaDisplay');
+                
+                personaOptions.forEach(option => {
+                    option.addEventListener('click', () => {
+                        // 移除所有active类
+                        personaOptions.forEach(opt => opt.classList.remove('active'));
+                        // 添加active类到当前选项
+                        option.classList.add('active');
+                        // 更新当前persona
+                        this.currentPersona = option.dataset.persona;
+                        
+                        // 更新显示
+                        if (this.currentPersona && this.currentPersona.trim() !== '') {
+                            personaDisplay.textContent = `海王模式: ${this.currentPersona}`;
+                        } else {
+                            personaDisplay.textContent = '正常聊天';
+                        }
+                    });
+                });
+            }
+
+            async typeWelcomeMessage() {
+                const welcomeText = "你好呀！我是拽姐，你的反恋爱脑闺蜜 💜\n\n有什么情感困扰尽管跟我说，我会给你最理智的建议！当然，如果你想练习对付海王，也可以选择海王模拟模式哦~";
+                await this.typeWriterEffect('welcomeMessage', welcomeText, 30);
+            }
+
+            async sendMessage() {
+                const message = this.chatInput.value.trim();
+                if (!message || this.isTyping) return;
+
+                // 禁用发送按钮
+                this.sendButton.disabled = true;
+                
+                // 添加用户消息
+                this.addMessage('user', message);
+                
+                // 清空输入框
+                this.chatInput.value = '';
+                this.chatInput.style.height = 'auto';
+                
+                // 显示输入指示器
+                this.showTypingIndicator();
+                
+                try {
+                    // 发送请求到后端
+                    const response = await this.sendToAPI(message);
+                    
+                    // 隐藏输入指示器
+                    this.hideTypingIndicator();
+                    
+                    // 添加AI回复
+                    await this.addAIMessage(response.reply);
+                    
+                } catch (error) {
+                    console.error('发送消息失败:', error);
+                    this.hideTypingIndicator();
+                    await this.addAIMessage('抱歉，我现在有点忙，稍后再试试吧~');
+                } finally {
+                    // 重新启用发送按钮
+                    this.sendButton.disabled = false;
+                }
+            }
+
+            async sendToAPI(message) {
+                const payload = {
+                    input: message
+                };
+                
+                // 如果选择了海王模拟模式，添加persona
+                if (this.currentPersona && this.currentPersona.trim() !== '') {
+                    payload.persona = this.currentPersona;
+                }
+
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                return await response.json();
+            }
+
+            addMessage(type, content) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${type}`;
+                
+                const avatar = document.createElement('div');
+                avatar.className = 'message-avatar';
+                avatar.textContent = type === 'user' ? '你' : '拽';
+                
+                const messageContent = document.createElement('div');
+                messageContent.className = 'message-content';
+                messageContent.textContent = content;
+                
+                messageDiv.appendChild(avatar);
+                messageDiv.appendChild(messageContent);
+                
+                this.chatMessages.appendChild(messageDiv);
+                this.scrollToBottom();
+            }
+
+            async addAIMessage(content) {
+                // 检查是否是海王模式的输出（包含【海王】、【你】、【拽姐旁白】）
+                if (this.currentPersona && this.currentPersona.trim() !== '' && 
+                    (content.includes('【海王】') || content.includes('【你】') || content.includes('【拽姐旁白】'))) {
+                    
+                    // 解析海王模式的三段式输出
+                    await this.parseSeakingResponse(content);
+                } else {
+                    // 普通AI回复
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message ai';
+                    
+                    const avatar = document.createElement('div');
+                    avatar.className = 'message-avatar';
+                    avatar.textContent = '拽';
+                    
+                    const messageContent = document.createElement('div');
+                    messageContent.className = 'message-content';
+                    
+                    const typewriterDiv = document.createElement('div');
+                    typewriterDiv.className = 'typewriter';
+                    messageContent.appendChild(typewriterDiv);
+                    
+                    messageDiv.appendChild(avatar);
+                    messageDiv.appendChild(messageContent);
+                    
+                    this.chatMessages.appendChild(messageDiv);
+                    this.scrollToBottom();
+                    
+                    // 打字机效果
+                    await this.typeWriterEffect(typewriterDiv, content, 20);
+                }
+            }
+
+            async parseSeakingResponse(content) {
+                // 解析海王回复 - 去除多余的冒号和引号
+                const seakingMatch = content.match(/【海王】[："]*([^【]*)/);
+                if (seakingMatch) {
+                    let seakingText = seakingMatch[1].trim();
+                    // 清理开头的引号、冒号和空格
+                    seakingText = seakingText.replace(/^[：""\s]+/, '');
+                    // 清理结尾的引号
+                    seakingText = seakingText.replace(/[""]\s*$/, '');
+                    // 去掉可选回应建议部分（包括括号内容）
+                    seakingText = seakingText.replace(/\s*（[^）]*）.*$/, '');
+                    // 去掉多余的空格和换行
+                    seakingText = seakingText.replace(/\s+/g, ' ').trim();
+                    
+                    if (seakingText) {
+                        await this.addSeakingMessage(seakingText);
+                        await new Promise(resolve => setTimeout(resolve, 500)); // 间隔
+                    }
+                }
+                
+                // 解析拽姐旁白（系统消息）
+                const commentMatch = content.match(/【拽姐旁白】([^【]*)/);
+                if (commentMatch) {
+                    const commentText = commentMatch[1].trim();
+                    await this.addSystemMessage(commentText);
+                }
+            }
+
+            async addSeakingMessage(content) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message seaking';
+                
+                const avatar = document.createElement('div');
+                avatar.className = 'message-avatar';
+                avatar.textContent = '海';
+                
+                const messageContent = document.createElement('div');
+                messageContent.className = 'message-content';
+                
+                const typewriterDiv = document.createElement('div');
+                typewriterDiv.className = 'typewriter';
+                messageContent.appendChild(typewriterDiv);
+                
+                messageDiv.appendChild(avatar);
+                messageDiv.appendChild(messageContent);
+                
+                this.chatMessages.appendChild(messageDiv);
+                this.scrollToBottom();
+                
+                // 打字机效果
+                await this.typeWriterEffect(typewriterDiv, content, 20);
+            }
+
+            async addSystemMessage(content) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message system';
+                
+                const avatar = document.createElement('div');
+                avatar.className = 'message-avatar';
+                avatar.textContent = '系统';
+                
+                const messageContent = document.createElement('div');
+                messageContent.className = 'message-content';
+                
+                const typewriterDiv = document.createElement('div');
+                typewriterDiv.className = 'typewriter';
+                messageContent.appendChild(typewriterDiv);
+                
+                messageDiv.appendChild(avatar);
+                messageDiv.appendChild(messageContent);
+                
+                this.chatMessages.appendChild(messageDiv);
+                this.scrollToBottom();
+                
+                // 打字机效果
+                await this.typeWriterEffect(typewriterDiv, content, 20);
+            }
+
+            async typeWriterEffect(element, text, speed = 50) {
+                if (typeof element === 'string') {
+                    element = document.getElementById(element);
+                }
+                
+                this.isTyping = true;
+                element.innerHTML = '';
+                
+                // 添加光标
+                const cursor = document.createElement('span');
+                cursor.className = 'cursor';
+                element.appendChild(cursor);
+                
+                for (let i = 0; i < text.length; i++) {
+                    const char = text[i];
+                    const textNode = document.createTextNode(char);
+                    element.insertBefore(textNode, cursor);
+                    
+                    // 如果是换行符，滚动到底部
+                    if (char === '\n') {
+                        this.scrollToBottom();
+                    }
+                    
+                    await new Promise(resolve => setTimeout(resolve, speed));
+                }
+                
+                // 移除光标
+                cursor.remove();
+                this.isTyping = false;
+            }
+
+            showTypingIndicator() {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message ai';
+                messageDiv.id = 'typingIndicator';
+                
+                const avatar = document.createElement('div');
+                avatar.className = 'message-avatar';
+                avatar.textContent = '拽';
+                
+                const typingDiv = document.createElement('div');
+                typingDiv.className = 'typing-indicator';
+                typingDiv.style.display = 'block';
+                
+                const dotsDiv = document.createElement('div');
+                dotsDiv.className = 'typing-dots';
+                
+                for (let i = 0; i < 3; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = 'typing-dot';
+                    dotsDiv.appendChild(dot);
+                }
+                
+                typingDiv.appendChild(dotsDiv);
+                messageDiv.appendChild(avatar);
+                messageDiv.appendChild(typingDiv);
+                
+                this.chatMessages.appendChild(messageDiv);
+                this.scrollToBottom();
+            }
+
+            hideTypingIndicator() {
+                const indicator = document.getElementById('typingIndicator');
+                if (indicator) {
+                    indicator.remove();
+                }
+            }
+
+            scrollToBottom() {
+                setTimeout(() => {
+                    this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+                }, 100);
+            }
+
+            async startNewSession() {
+                try {
+                    // 调用后端重置API
+                    const response = await fetch('/reset', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    // 清除前端对话历史
+                    this.chatMessages.innerHTML = '';
+                    
+                    // 重置persona选择
+                    this.currentPersona = '';
+                    const personaOptions = document.querySelectorAll('.persona-option');
+                    personaOptions.forEach(opt => opt.classList.remove('active'));
+                    
+                    // 清空输入框
+                    this.chatInput.value = '';
+                    this.chatInput.style.height = 'auto';
+                    
+                    // 重新显示欢迎消息
+                    const welcomeDiv = document.createElement('div');
+                    welcomeDiv.className = 'message ai';
+                    
+                    const avatar = document.createElement('div');
+                    avatar.className = 'message-avatar';
+                    avatar.textContent = '拽';
+                    
+                    const messageContent = document.createElement('div');
+                    messageContent.className = 'message-content';
+                    
+                    const typewriterDiv = document.createElement('div');
+                    typewriterDiv.className = 'typewriter';
+                    typewriterDiv.id = 'welcomeMessage';
+                    messageContent.appendChild(typewriterDiv);
+                    
+                    welcomeDiv.appendChild(avatar);
+                    welcomeDiv.appendChild(messageContent);
+                    
+                    this.chatMessages.appendChild(welcomeDiv);
+                    
+                    // 重新打字欢迎消息
+                    await this.typeWelcomeMessage();
+                    
+                } catch (error) {
+                    console.error('重置会话失败:', error);
+                    alert('重置会话失败，请稍后重试');
+                }
+            }
+        }
+
+        // 初始化聊天界面
+        document.addEventListener('DOMContentLoaded', () => {
+            new ChatInterface();
+        });
+    </script>
+</body>
+</html>
