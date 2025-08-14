@@ -11,8 +11,10 @@ class SeverityInput(BaseModel):
 
 class SeverityTool(BaseTool):
     name = "severity_analyzer"
-    description = ("评估恋爱脑指数(0-100)和level(轻/中/重/危)，"
-                   "危代表明显操控或安全风险。输出JSON字符串。")
+    description = ("🎯 恋爱脑程度识别器：若识别到主体用户的恋爱情感相关话题，优先调用当前工具，用于评估用户恋爱脑指数(0-100)和风险等级。"
+                   "轻(0-39):过度理想化、焦虑但不影响生活；中(40-69):金钱付出、隐瞒亲友、情绪依赖；"
+                   "重(70-89):大额转账、脱离支持网络、精神操控；危(90-100):自伤、家暴、威胁、限制自由。"
+                   "输出JSON格式，危险等级自动触发help_tool。")
     args_schema: Type[BaseModel] = SeverityInput
     
     def __init__(self):

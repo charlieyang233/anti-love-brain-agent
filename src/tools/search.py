@@ -126,7 +126,8 @@ def _generate_evidence(search_results: list, risk_category: str) -> str:
 
 class SearchTool(BaseTool):
     name = "search_tool"
-    description = ("当需要案例警示时使用。基于用户输入检测风险类别，搜索相关案例，生成evidence供其他工具使用。")
+    description = ("🔍 案例检索工具：当severity_analyzer检测到【重度/危险】等级需要案例警示时使用。"
+                   "用SerpAPI检索恋爱诈骗、PUA识别、网恋风险、金钱纠纷、安全威胁等相关案例，生成evidence用于roast_tool和help_tool的案例警示。")
     args_schema: Type[BaseModel] = SearchInput
 
     def _run(self, query: str, risk_category: str = "", num: int = 3) -> str:

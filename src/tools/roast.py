@@ -1,4 +1,4 @@
-from typing import Type
+from typing import Type, Optional
 from pydantic import BaseModel, Field
 from langchain.tools import BaseTool
 from ..prompts import ROAST_INNER_GUIDE
@@ -10,7 +10,9 @@ class RoastInput(BaseModel):
 
 class RoastTool(BaseTool):
     name = "roast_tool"
-    description = ("当用户分享/吐槽或恋爱相关行为时使用。根据严重程度输出一段自然口语化的老李吐槽，可融合evidence作为案例警示。")
+    description = ("💥 毒舌锐评恋爱脑工具：用于纯分享/吐槽场景。根据恋爱脑程度调整毒舌强度：轻度温和挖苦(≤20字)，"
+                   "中度直白犀利+困惑反问+祛魅(25-30字)，重度高强度直怼+戏谑夸张+案例警示(30-50字)。"
+                   "口语化开头直戳痛点，极端祛魅揭露真相，可融入evidence作案例警示。拽姐人设，不讲道理只暴击。")
     args_schema: Type[BaseModel] = RoastInput
 
     def _run(self, user_text: str, level: str, evidence: str = "") -> str:

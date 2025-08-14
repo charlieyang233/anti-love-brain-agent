@@ -188,6 +188,43 @@ class SmartMemoryManager:
             summary_parts.append(f"行为模式：{pattern_summary}")
         
         return " | ".join(summary_parts) if summary_parts else ""
+    
+    def get_recent_context(self, limit: int = 3) -> List[Dict[str, str]]:
+        """获取最近的对话上下文
+        
+        Args:
+            limit: 获取最近N轮对话
+            
+        Returns:
+            包含最近对话的列表，每个元素包含 user_input 和 ai_response
+        """
+        recent_interactions = []
+        
+        try:
+            # 从memory获取最近的消息
+            if hasattr(self.memory, 'chat_memory') and hasattr(self.memory.chat_memory, 'messages'):
+                messages = self.memory.chat_memory.messages
+                
+                # 配对用户输入和AI响应
+                for i in range(len(messages) - 1, -1, -2):  # 倒序遍历，每次跳2个
+                    if i > 0 and len(recent_interactions) < limit:
+                        ai_msg = messages[i] if hasattr(messages[i], 'content') else None
+                        user_msg = messages[i-1] if hasattr(messages[i-1], 'content') else None
+                        
+                        if user_msg and ai_msg:
+                            interaction = {
+                                "user_input": user_msg.content,
+                                "ai_response": ai_msg.content
+                            }
+                            recent_interactions.append(interaction)
+                
+                # 因为是倒序添加的，需要翻转以保持时间顺序
+                recent_interactions.reverse()
+                
+        except Exception as e:
+            print(f"⚠️ 获取最近上下文时出错: {e}")
+        
+        return recent_interactions
 
     def get_memory_stats(self) -> Dict[str, Any]:
         """获取内存使用统计"""
@@ -196,12 +233,14 @@ class SmartMemoryManager:
         
         return {
             "conversation_count": self.conversation_count,
+            "total_interactions": self.conversation_count,  # 添加总交互数
+            "short_term_count": len(self.memory.chat_memory.messages) if hasattr(self.memory, 'chat_memory') else 0,
+            "long_term_count": len(self.long_term_memory["risk_history"]),
             "estimated_tokens": estimated_tokens,
             "max_tokens": max_tokens,
-            "memory_usage_ratio": min(estimated_tokens / max_tokens, 1.0) if max_tokens > 0 else 0,
-            "memory_window": self.max_conversation_window,
+            "token_usage_ratio": estimated_tokens / max_tokens if max_tokens > 0 else 0,
             "risk_history_count": len(self.long_term_memory["risk_history"]),
-            "key_insights_count": len(self.long_term_memory["key_insights"]),
+            "pattern_count": len(self.long_term_memory["user_patterns"]),
             "user_patterns": self.long_term_memory["user_patterns"]
         }
 
