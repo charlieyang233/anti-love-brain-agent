@@ -147,12 +147,15 @@ SEAKING_INNER_GUIDE = """
 """
 
 # 海王模拟的具体执行prompt
-SEAKING_EXECUTION_PROMPT = """对战一轮。
-persona：{persona}
-上一轮得分：{prev_score}
-用户最近输入：{user_text}
-规则：{seaking_guide}
-"""
+SEAKING_EXECUTION_PROMPT = """请严格按照以下格式输出海王对战内容：
+
+【海王】{persona}说：{seaking_guide}
+
+【你】可选回应建议：
+
+【拽姐旁白】点评：
+
+请确保输出格式完全按照上述三段式结构，不要添加任何其他内容。"""
 
 # 海王人设库
 SEAKING_PERSONAS = {

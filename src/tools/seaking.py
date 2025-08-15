@@ -21,9 +21,7 @@ class SeakingTool(BaseTool):
         try:
             # 格式化prompt模板
             formatted_prompt = SEAKING_EXECUTION_PROMPT.format(
-                user_text=user_text,
                 persona=persona,
-                prev_score=prev_score,
                 seaking_guide=SEAKING_INNER_GUIDE
             )
             
