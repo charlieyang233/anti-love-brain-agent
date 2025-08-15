@@ -53,7 +53,7 @@ class SeverityTool(BaseTool):
         )
         
         # 直接调用LLM生成回复
-        llm_instance = llm(temperature=0.7)
+        llm_instance = llm(temperature=0.1)
         response = llm_instance.invoke(prompt)
         return response.content if hasattr(response, 'content') else str(response)
 
@@ -71,7 +71,7 @@ class SeverityTool(BaseTool):
         )
         
         # 直接调用LLM生成回复
-        llm_instance = llm(temperature=0.7)
+        llm_instance = llm(temperature=0.1)
         response = llm_instance.invoke(prompt)
         return response.content if hasattr(response, 'content') else str(response)
 

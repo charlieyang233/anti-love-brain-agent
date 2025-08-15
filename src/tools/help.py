@@ -27,7 +27,7 @@ class HelpTool(BaseTool):
             )
             
             # 直接调用LLM生成回复
-            llm_instance = llm(temperature=0.1)
+            llm_instance = llm(temperature=0.2)
             response = llm_instance.invoke(formatted_prompt)
             
             # 返回生成的回复内容

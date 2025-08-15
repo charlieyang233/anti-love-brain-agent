@@ -5,7 +5,6 @@ from ..prompts.prompts import GLOBAL_SYSTEM_PROMPT
 from .config import llm
 from ..memory.memory_manager import SmartMemoryManager
 from ..tools.severity import SeverityTool
-from ..tools.roast import RoastTool
 from ..tools.help import HelpTool
 from ..tools.seaking import SeakingTool
 from ..tools.talk import TalkTool
