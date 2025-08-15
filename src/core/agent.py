@@ -6,7 +6,7 @@ from .config import llm
 from ..memory.memory_manager import SmartMemoryManager
 from ..tools.severity import SeverityTool
 from ..tools.help import HelpTool
-from ..tools.seaking import SeakingTool
+
 from ..tools.talk import TalkTool
 
 
@@ -24,10 +24,12 @@ def build_agent(memory_manager=None) -> AgentExecutor:
     if memory_manager is None:
         memory_manager = smart_memory
     
+    # 延迟导入SeakingTool以避免循环导入
+    from ..tools.seaking import SeakingTool
+    
     tools = [
         SeverityTool(),
         HelpTool(),
-        SeakingTool(),
         TalkTool(),
     ]
 
@@ -45,11 +47,11 @@ def build_agent(memory_manager=None) -> AgentExecutor:
         agent=agent, 
         tools=tools, 
         memory=memory_manager.memory,  # 直接使用传入的记忆实例
-        verbose=False,  # 关闭调试信息
-        return_intermediate_steps=False,  # 关闭中间步骤
+        verbose=True,  # 启用调试信息
+        return_intermediate_steps=True,  # 返回中间步骤
         handle_parsing_errors=True,  # 处理解析错误
-        max_iterations=5,  # 增加最大迭代次数，允许Agent调用工具
-        early_stopping_method="force"  # 使用强制停止方法
+        max_iterations=3,  # 减少最大迭代次数
+        early_stopping_method="generate"  # 使用生成停止方法
     )
     
     # 验证记忆绑定是否成功（调试用）- 使用type检查而不是is检查

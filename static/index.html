@@ -34,6 +34,17 @@
                     </div>
                 </div>
 
+                <!-- 海王对战得分指示器 -->
+                <div class="seaking-score-indicator seaking-score-hidden" id="seakingScoreIndicator">
+                    <div class="seaking-score-compact">
+                        <span class="seaking-score-icon">🏆</span>
+                        <span class="seaking-score-text">得分: <span id="seakingScoreValue">0</span></span>
+                        <div class="seaking-score-bar">
+                            <div class="seaking-score-fill" id="seakingScoreFill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 记忆状态指示器 -->
                 <div class="memory-indicator" id="memoryIndicator" title="点击查看记忆详情">
                     <div class="memory-compact">
@@ -61,10 +72,10 @@
         <div class="chat-input-container">
             <div class="persona-selector">
                 <span class="persona-label">模式:</span>
-                <div class="persona-option active" data-persona="">正常聊天</div>
-                <div class="persona-option" data-persona="高冷学霸型">海王模拟-学霸</div>
-                <div class="persona-option" data-persona="温柔暖男型">海王模拟-暖男</div>
-                <div class="persona-option" data-persona="霸道总裁型">海王模拟-总裁</div>
+                <div class="persona-option active" data-button-type="正常聊天">💬 正常聊天</div>
+                <div class="persona-option" data-button-type="🌊对战海王">🌊 对战海王</div>
+                <div class="persona-option" data-button-type="🍵反茶艺大师">🍵 反茶艺大师</div>
+                <div class="persona-option" data-button-type="🌈决战通讯录之巅">🌈 决战通讯录之巅</div>
             </div>
             <div class="chat-input-wrapper">
                 <textarea 
@@ -85,9 +96,12 @@
 
     <script>
         // 全局变量
-        let currentPersona = '';
+        let currentButtonType = '正常聊天';
+        let currentSeakingScore = 0;
+        let isFirstSeaking = true;
         let isTyping = false;
         let conversationHistory = [];
+        let currentSeakingPersona = null; // 存储当前海王对战的人设信息
 
         // DOM 元素
         const chatMessages = document.getElementById('chatMessages');
@@ -103,6 +117,11 @@
         const meterFill = document.getElementById('meterFill');
         const meterLevel = document.getElementById('meterLevel');
         const meterValue = document.getElementById('meterValue');
+
+        // 海王对战得分相关元素
+        const seakingScoreIndicator = document.getElementById('seakingScoreIndicator');
+        const seakingScoreValue = document.getElementById('seakingScoreValue');
+        const seakingScoreFill = document.getElementById('seakingScoreFill');
 
         // 记忆状态相关元素
         const memoryIndicator = document.getElementById('memoryIndicator');
@@ -173,27 +192,91 @@
         }
 
         // 获取模式显示文本（带emoji）
-        function getPersonaDisplayText(text, persona) {
-            if (!persona) {
+        function getPersonaDisplayText(text, buttonType) {
+            if (buttonType === '正常聊天') {
                 return '💬 ' + text;
             } else {
-                return '😈 ' + text;
+                return '🌊 ' + text;
             }
         }
 
-        // 人格切换
+        // 模式切换
         personaOptions.forEach(option => {
-            option.addEventListener('click', function() {
+            option.addEventListener('click', async function() {
                 personaOptions.forEach(opt => opt.classList.remove('active'));
                 this.classList.add('active');
-                currentPersona = this.dataset.persona;
-                personaDisplay.textContent = getPersonaDisplayText(this.textContent, currentPersona);
+                currentButtonType = this.dataset.buttonType;
+                personaDisplay.textContent = getPersonaDisplayText(this.textContent, currentButtonType);
                 
-                // 海王模式特殊处理
-                if (currentPersona) {
-                    addSystemMessage(`已切换到 ${this.textContent} 模式`);
+                console.log('模式切换:', currentButtonType);
+                
+                // 重置海王对战状态
+                if (currentButtonType !== '正常聊天') {
+                    currentSeakingScore = 0;
+                    isFirstSeaking = true;
+                    
+                    // 从本地JSON文件获取人设
+                    try {
+                        const personasResponse = await fetch('/static/personas.json');
+                        if (personasResponse.ok) {
+                            const personasData = await personasResponse.json();
+                            const config = personasData[currentButtonType];
+                            if (config && config.personas) {
+                                // 随机选择一个人设
+                                const randomPersona = config.personas[Math.floor(Math.random() * config.personas.length)];
+                                currentSeakingPersona = {
+                                    button_type: currentButtonType,
+                                    persona: randomPersona.name,
+                                    gender: randomPersona.gender,
+                                    user_gender: randomPersona.user_gender,
+                                    challenge_type: randomPersona.challenge_type,
+                                    first_greeting: randomPersona.first_greeting
+                                };
+                                console.log('获取新人设:', currentSeakingPersona);
+                                
+                                // 显示人设说明
+                                addSystemMessage(`已切换进入${this.textContent}模式，开始对战海王，目标是回复得分达100！本次挑战海王：${randomPersona.name}`);
+                                
+                                // 显示海王首句招呼
+                                setTimeout(() => {
+                                    addMessage(`【海王】${randomPersona.name}说：${randomPersona.first_greeting}`, 'ai');
+                                }, 500);
+                            } else {
+                                addSystemMessage(`已切换到 ${this.textContent} 模式，准备开始海王对战！`);
+                            }
+                        } else {
+                            addSystemMessage(`已切换到 ${this.textContent} 模式，准备开始海王对战！`);
+                        }
+                    } catch (error) {
+                        console.error('获取人设失败:', error);
+                        addSystemMessage(`已切换到 ${this.textContent} 模式，准备开始海王对战！`);
+                    }
                 } else {
+                    // 切换到正常聊天模式时，重置所有海王相关状态
+                    currentSeakingScore = 0;
+                    isFirstSeaking = true;
                     addSystemMessage('已切换到正常聊天模式');
+                    // 隐藏海王得分指示器
+                    resetSeakingScore();
+                    // 清除对话历史，避免显示海王对战内容
+                    conversationHistory = [];
+                    
+                    // 重置服务器端记忆，避免海王对战历史影响正常聊天
+                    try {
+                        const resetResponse = await fetch('/reset', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            }
+                        });
+                        if (resetResponse.ok) {
+                            console.log('服务器记忆重置成功');
+                            // 清除前端对话历史
+                            chatMessages.innerHTML = '';
+                        }
+                    } catch (error) {
+                        console.error('重置记忆失败:', error);
+                    }
                 }
             });
         });
@@ -226,6 +309,9 @@
                 
                 // 重置前端状态
                 conversationHistory = [];
+                currentSeakingScore = 0;
+                isFirstSeaking = true;
+                currentSeakingPersona = null; // 清除人设信息
                 chatMessages.innerHTML = `
                     <div class="message ai">
                         <div class="message-avatar">拽</div>
@@ -233,6 +319,7 @@
                     </div>
                 `;
                 resetLoveBrainMeter();
+                resetSeakingScore();
                 resetMemoryStats();
                 
                 // 更新记忆状态
@@ -253,6 +340,7 @@
                     </div>
                 `;
                 resetLoveBrainMeter();
+                resetSeakingScore();
                 resetMemoryStats();
                 scrollToBottom();
                 
@@ -275,17 +363,50 @@
             showTypingIndicator();
 
             try {
-                const response = await fetch('/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
+                let response;
+                
+                if (currentButtonType !== '正常聊天' && currentSeakingPersona) {
+                    // 海王对战模式 - 直接调用seaking chain
+                    const seakingRequestBody = {
                         message: message,
-                        persona: currentPersona,
+                        button_type: currentButtonType,
+                        seaking_score: currentSeakingScore,
+                        is_first_seaking: isFirstSeaking,
+                        persona: currentSeakingPersona.persona,
+                        gender: currentSeakingPersona.gender,
+                        user_gender: currentSeakingPersona.user_gender,
+                        challenge_type: currentSeakingPersona.challenge_type
+                    };
+                    
+                    console.log('海王对战请求参数:', seakingRequestBody);
+                    
+                    response = await fetch('/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(seakingRequestBody)
+                    });
+                } else {
+                    // 正常聊天模式
+                    const normalRequestBody = {
+                        message: message,
+                        button_type: currentButtonType,
+                        seaking_score: currentSeakingScore,
+                        is_first_seaking: isFirstSeaking,
                         history: conversationHistory
-                    })
-                });
+                    };
+                    
+                    console.log('正常聊天请求参数:', normalRequestBody);
+                    
+                    response = await fetch('/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(normalRequestBody)
+                    });
+                }
 
                 const data = await response.json();
                 
@@ -305,12 +426,38 @@
                         await loadMemoryStats();
                     }
                     
+                    // 更新海王对战状态
+                    if (data.seaking_mode) {
+                        currentSeakingScore = data.seaking_mode.current_score || 0;
+                        isFirstSeaking = data.seaking_mode.is_first_seaking || false;
+                        
+                        // 更新得分显示
+                        updateSeakingScore(currentSeakingScore);
+                        
+                        // 检查是否通关
+                        if (data.seaking_mode.is_victory) {
+                            addSystemMessage('🎉 恭喜通关！你已经成功应对了海王的套路！');
+                            // 自动切换回正常聊天模式
+                            setTimeout(() => {
+                                const normalChatOption = document.querySelector('[data-button-type="正常聊天"]');
+                                if (normalChatOption) {
+                                    normalChatOption.click();
+                                }
+                            }, 2000);
+                        }
+                    }
+                    
                     // 添加AI回复
-                    if (currentPersona && currentPersona.trim() !== '') {
-                        // 海王模拟模式 - 解析三段式输出
+                    console.log('当前模式:', currentButtonType);
+                    console.log('响应内容:', data.response);
+                    
+                    if (currentButtonType !== '正常聊天') {
+                        // 海王对战模式 - 解析三段式输出
+                        console.log('使用海王对战模式解析');
                         await parseSeakingResponse(data.response);
                     } else {
                         // 普通聊天模式
+                        console.log('使用普通聊天模式显示');
                         await addMessageWithTypewriter(data.response, 'ai');
                     }
                     
@@ -393,9 +540,20 @@
             typeChar();
         }
 
-        // 解析海王模拟的三段式输出
+        // 解析海王对战的三段式输出
         async function parseSeakingResponse(content) {
-            console.log('解析海王模拟器输出:', content);
+            console.log('解析海王对战输出:', content);
+            
+            // 解析挑战目标（首次对话）
+            const challengeMatch = content.match(/【挑战目标】([^【]*)/);
+            if (challengeMatch) {
+                const challengeText = challengeMatch[1].trim();
+                console.log('解析到挑战目标:', challengeText);
+                if (challengeText) {
+                    addSystemMessage(`🎯 挑战目标: ${challengeText}`);
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                }
+            }
             
             // 解析海王回复
             const seakingMatch = content.match(/【海王】([^【]*)/);
@@ -415,6 +573,17 @@
                 }
             } else {
                 console.log('未找到海王回复格式');
+            }
+            
+            // 解析可选回应建议
+            const suggestionMatch = content.match(/【你】可选回应建议：([^【]*)/);
+            if (suggestionMatch) {
+                const suggestionText = suggestionMatch[1].trim();
+                console.log('解析到回应建议:', suggestionText);
+                if (suggestionText) {
+                    addSystemMessage(`💡 可选回应建议: ${suggestionText}`);
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                }
             }
             
             // 解析拽姐旁白
@@ -499,7 +668,7 @@
             
             const avatar = document.createElement('div');
             avatar.className = 'message-avatar';
-            avatar.textContent = currentPersona ? '王' : '拽';
+            avatar.textContent = currentButtonType !== '正常聊天' ? '王' : '拽';
             
             const indicatorContent = document.createElement('div');
             indicatorContent.className = 'typing-indicator';
@@ -566,6 +735,30 @@
             setTimeout(() => {
                 loveBrainIndicator.style.animation = '';
             }, 500);
+        }
+
+        // 更新海王对战得分
+        function updateSeakingScore(score) {
+            if (currentButtonType !== '正常聊天') {
+                seakingScoreIndicator.classList.remove('seaking-score-hidden');
+                seakingScoreValue.textContent = score;
+                seakingScoreFill.style.width = `${score}%`;
+                
+                // 添加动画效果
+                seakingScoreIndicator.style.animation = 'pulse 0.5s ease-in-out';
+                setTimeout(() => {
+                    seakingScoreIndicator.style.animation = '';
+                }, 500);
+            } else {
+                seakingScoreIndicator.classList.add('seaking-score-hidden');
+            }
+        }
+
+        // 重置海王对战得分
+        function resetSeakingScore() {
+            seakingScoreIndicator.classList.add('seaking-score-hidden');
+            seakingScoreFill.style.width = '0%';
+            seakingScoreValue.textContent = '0';
         }
 
         // 重置恋爱脑指数

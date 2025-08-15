@@ -97,6 +97,61 @@ body {
     z-index: 1;
 }
 
+/* 海王对战得分指示器 */
+.seaking-score-indicator {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    padding: 8px 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    min-width: 120px;
+}
+
+.seaking-score-indicator:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.seaking-score-compact {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.seaking-score-icon {
+    font-size: 14px;
+}
+
+.seaking-score-text {
+    white-space: nowrap;
+}
+
+.seaking-score-bar {
+    width: 40px;
+    height: 4px;
+    background: #e5e7eb;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-left: 4px;
+}
+
+.seaking-score-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.seaking-score-hidden {
+    display: none;
+}
+
 /* 恋爱脑指数显示 - 扩展版本 */
 .love-brain-indicator {
     display: flex;
@@ -579,6 +634,40 @@ body {
     color: white;
     border-color: #8b5cf6;
     font-weight: 500;
+}
+
+/* 海王对战按钮特殊样式 */
+.persona-option[data-button-type="🌊对战海王"]:hover {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    border-color: #3b82f6;
+}
+
+.persona-option[data-button-type="🍵反茶艺大师"]:hover {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border-color: #10b981;
+}
+
+.persona-option[data-button-type="🌈决战通讯录之巅"]:hover {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    border-color: #f59e0b;
+}
+
+.persona-option[data-button-type="🌊对战海王"].active {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    border-color: #3b82f6;
+}
+
+.persona-option[data-button-type="🍵反茶艺大师"].active {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border-color: #10b981;
+}
+
+.persona-option[data-button-type="🌈决战通讯录之巅"].active {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    border-color: #f59e0b;
 }
 
 .chat-input-wrapper {
