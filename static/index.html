@@ -212,47 +212,52 @@
                 
                 // 重置海王对战状态
                 if (currentButtonType !== '正常聊天') {
-                    // 只有在没有当前海王人设时才重置状态
-                    if (!currentSeakingPersona || currentSeakingPersona.button_type !== currentButtonType) {
+                    // 只有在切换不同模式或没有当前人设时才重置状态
+                    const shouldReset = !currentSeakingPersona || currentSeakingPersona.button_type !== currentButtonType;
+                    
+                    if (shouldReset) {
                         currentSeakingScore = 0;
                         isFirstSeaking = true;
-                    }
-                    
-                    // 从本地JSON文件获取人设
-                    try {
-                        const personasResponse = await fetch('/static/personas.json');
-                        if (personasResponse.ok) {
-                            const personasData = await personasResponse.json();
-                            const config = personasData[currentButtonType];
-                            if (config && config.personas) {
-                                // 随机选择一个人设
-                                const randomPersona = config.personas[Math.floor(Math.random() * config.personas.length)];
-                                currentSeakingPersona = {
-                                    button_type: currentButtonType,
-                                    persona: randomPersona.name,
-                                    gender: randomPersona.gender,
-                                    user_gender: randomPersona.user_gender,
-                                    challenge_type: randomPersona.challenge_type,
-                                    first_greeting: randomPersona.first_greeting
-                                };
-                                console.log('获取新人设:', currentSeakingPersona);
-                                
-                                // 显示人设说明
-                                addSystemMessage(`已切换进入${this.textContent}模式，目标是回复得分达100！本次挑战海王：${randomPersona.name}`);
-                                
-                                // 显示海王首句招呼
-                                setTimeout(() => {
-                                    addMessage(`【海王】：${randomPersona.first_greeting}`, 'ai');
-                                }, 500);
+                        
+                        // 从本地JSON文件获取人设
+                        try {
+                            const personasResponse = await fetch('/static/personas.json');
+                            if (personasResponse.ok) {
+                                const personasData = await personasResponse.json();
+                                const config = personasData[currentButtonType];
+                                if (config && config.personas) {
+                                    // 随机选择一个人设
+                                    const randomPersona = config.personas[Math.floor(Math.random() * config.personas.length)];
+                                    currentSeakingPersona = {
+                                        button_type: currentButtonType,
+                                        persona: randomPersona.name,
+                                        gender: randomPersona.gender,
+                                        user_gender: randomPersona.user_gender,
+                                        challenge_type: randomPersona.challenge_type,
+                                        first_greeting: randomPersona.first_greeting
+                                    };
+                                    console.log('获取新人设:', currentSeakingPersona);
+                                    
+                                    // 显示人设说明
+                                    addSystemMessage(`已切换进入${this.textContent}模式，目标是回复得分达100！本次挑战海王：${randomPersona.name}`);
+                                    
+                                    // 显示海王首句招呼
+                                    setTimeout(() => {
+                                        addMessage(`【海王】：${randomPersona.first_greeting}`, 'ai');
+                                    }, 500);
+                                } else {
+                                    addSystemMessage(`已切换到 ${this.textContent} 模式，准备开始海王对战！`);
+                                }
                             } else {
                                 addSystemMessage(`已切换到 ${this.textContent} 模式，准备开始海王对战！`);
                             }
-                        } else {
+                        } catch (error) {
+                            console.error('获取人设失败:', error);
                             addSystemMessage(`已切换到 ${this.textContent} 模式，准备开始海王对战！`);
                         }
-                    } catch (error) {
-                        console.error('获取人设失败:', error);
-                        addSystemMessage(`已切换到 ${this.textContent} 模式，准备开始海王对战！`);
+                    } else {
+                        // 如果不需要重置，只显示当前模式信息
+                        addSystemMessage(`继续${this.textContent}模式，当前海王：${currentSeakingPersona.persona}`);
                     }
                 } else {
                     // 切换到正常聊天模式时，重置所有海王相关状态
