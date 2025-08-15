@@ -212,8 +212,11 @@
                 
                 // 重置海王对战状态
                 if (currentButtonType !== '正常聊天') {
-                    currentSeakingScore = 0;
-                    isFirstSeaking = true;
+                    // 只有在没有当前海王人设时才重置状态
+                    if (!currentSeakingPersona || currentSeakingPersona.button_type !== currentButtonType) {
+                        currentSeakingScore = 0;
+                        isFirstSeaking = true;
+                    }
                     
                     // 从本地JSON文件获取人设
                     try {
@@ -235,11 +238,11 @@
                                 console.log('获取新人设:', currentSeakingPersona);
                                 
                                 // 显示人设说明
-                                addSystemMessage(`已切换进入${this.textContent}模式，开始对战海王，目标是回复得分达100！本次挑战海王：${randomPersona.name}`);
+                                addSystemMessage(`已切换进入${this.textContent}模式，目标是回复得分达100！本次挑战海王：${randomPersona.name}`);
                                 
                                 // 显示海王首句招呼
                                 setTimeout(() => {
-                                    addMessage(`【海王】${randomPersona.name}说：${randomPersona.first_greeting}`, 'ai');
+                                    addMessage(`【海王】：${randomPersona.first_greeting}`, 'ai');
                                 }, 500);
                             } else {
                                 addSystemMessage(`已切换到 ${this.textContent} 模式，准备开始海王对战！`);
