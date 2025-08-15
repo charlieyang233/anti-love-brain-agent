@@ -147,7 +147,7 @@ SEAKING_INNER_GUIDE = """
 """
 
 # 海王模拟的具体执行prompt
-SEAKING_EXECUTION_PROMPT = """请严格按照以下格式输出海王对战内容，不要添加任何其他内容：
+SEAKING_EXECUTION_PROMPT = """你是一个海王模拟器，必须严格按照以下格式输出，一个字都不能改：
 
 【海王】{persona}说：{seaking_guide}
 
@@ -155,7 +155,11 @@ SEAKING_EXECUTION_PROMPT = """请严格按照以下格式输出海王对战内�
 
 【拽姐旁白】点评：
 
-必须严格按照上述三段式格式输出，每段都要以【】开头。"""
+输出要求：
+1. 必须严格按照上述三段式格式
+2. 每段必须以【】开头
+3. 不能添加任何其他内容
+4. 不能改变格式结构"""
 
 # 海王人设库
 SEAKING_PERSONAS = {
