@@ -395,8 +395,10 @@
 
         // 解析海王模拟的三段式输出
         async function parseSeakingResponse(content) {
+            console.log('解析海王模拟器输出:', content);
+            
             // 解析海王回复
-            const seakingMatch = content.match(/【海王】[："]*([^【]*)/);
+            const seakingMatch = content.match(/【海王】[^：]*：([^【]*)/);
             if (seakingMatch) {
                 let seakingText = seakingMatch[1].trim();
                 // 清理格式
@@ -405,19 +407,26 @@
                 seakingText = seakingText.replace(/\s*（[^）]*）.*$/, '');
                 seakingText = seakingText.replace(/\s+/g, ' ').trim();
                 
+                console.log('解析到海王回复:', seakingText);
+                
                 if (seakingText) {
                     await addSeakingMessage(seakingText);
                     await new Promise(resolve => setTimeout(resolve, 500));
                 }
+            } else {
+                console.log('未找到海王回复格式');
             }
             
             // 解析拽姐旁白
             const commentMatch = content.match(/【拽姐旁白】([^【]*)/);
             if (commentMatch) {
                 const commentText = commentMatch[1].trim();
+                console.log('解析到拽姐旁白:', commentText);
                 if (commentText) {
                     addSystemMessage(commentText);
                 }
+            } else {
+                console.log('未找到拽姐旁白格式');
             }
         }
 

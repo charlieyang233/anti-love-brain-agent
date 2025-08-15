@@ -26,7 +26,7 @@ class SeakingTool(BaseTool):
             )
             
             # 直接调用LLM生成回复
-            llm_instance = llm(temperature=0.8)  # 稍微增加温度让回复更有创意
+            llm_instance = llm(temperature=0)  # 稍微增加温度让回复更有创意
             response = llm_instance.invoke(formatted_prompt)
             
             return response.content.strip()
