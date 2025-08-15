@@ -182,7 +182,7 @@ class AsyncSeverityAnalyzer:
         love_keywords = ['他', '她', '男朋友', '女朋友', '恋爱', '分手', '复合', '挽回', 
                         '喜欢', '爱', '不爱', '出轨', '背叛', '冷暴力', 'PUA', '控制', 
                         '依赖', '焦虑', '消息', '回复', '朋友圈', '约会', '礼物', '转账', 
-                        '借钱', '结婚', '离婚']
+                        '借钱', '结婚', '离婚', '海王', '模拟', '对战', '话术']
         
         # 检查是否为恋爱话题
         has_love_content = any(keyword in user_text for keyword in love_keywords)
