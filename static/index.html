@@ -398,7 +398,7 @@
             console.log('解析海王模拟器输出:', content);
             
             // 解析海王回复
-            const seakingMatch = content.match(/【海王】[^：]*：([^【]*)/);
+            const seakingMatch = content.match(/【海王】([^【]*)/);
             if (seakingMatch) {
                 let seakingText = seakingMatch[1].trim();
                 // 清理格式
