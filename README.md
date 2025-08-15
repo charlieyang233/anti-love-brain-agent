@@ -91,7 +91,7 @@ anti_love_brain_agent/
 │       ├── severity.py          # 恋爱脑评估
 │       ├── help.py              # 专业建议
 │       ├── roast.py             # 毒舌吐槽
-│       ├── search.py            # 信息搜索
+│       ├── severity.py          # 恋爱脑分析
 │       └── talk.py              # 日常聊天
 ├── 🎨 前端界面 (static/)
 │   ├── index.html               # 主界面
@@ -144,7 +144,6 @@ MEMORY_STORAGE_TYPE=memory        # "memory" 或 "redis"
 REDIS_URL=redis://localhost:6379  # Redis URL（可选）
 
 # 可选功能
-SERPAPI_API_KEY=your_serpapi_key  # 搜索功能
 DEBUG=false                       # 调试模式
 ```
 

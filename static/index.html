@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI老李 - 你的赛博反恋爱脑闺蜜搭子 Agent</title>
+    <title>AI老李 - 你的反恋爱脑赛博闺蜜搭子 Agent</title>
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/styles.css">
@@ -114,8 +114,11 @@
             typeWelcomeMessage();
             chatInput.focus();
             autoResizeTextarea();
-            // 加载记忆状态
-            loadMemoryStats();
+            // 延迟加载记忆状态，确保页面完全初始化
+            setTimeout(() => {
+                console.log('🏁 页面初始化：开始加载记忆状态');
+                loadMemoryStats();
+            }, 500);
         });
 
         // 欢迎消息打字机效果
@@ -215,6 +218,10 @@
                     }
                 });
                 
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
                 const data = await response.json();
                 
                 // 重置前端状态
@@ -235,7 +242,6 @@
                 
                 scrollToBottom();
                 
-                console.log('会话重置成功:', data);
             } catch (error) {
                 console.error('重置会话失败:', error);
                 // 降级处理：仅前端重置
@@ -249,6 +255,9 @@
                 resetLoveBrainMeter();
                 resetMemoryStats();
                 scrollToBottom();
+                
+                // 显示错误提示
+                addMessage('会话重置成功，但服务器状态可能未完全重置', 'ai');
             }
         });
 
@@ -291,6 +300,9 @@
                     // 更新记忆状态
                     if (data.memory_stats) {
                         updateMemoryStats(data.memory_stats);
+                    } else {
+                        // 如果响应中没有memory_stats，主动获取最新状态
+                        await loadMemoryStats();
                     }
                     
                     // 添加AI回复
@@ -309,12 +321,13 @@
                     );
                 } else {
                     hideTypingIndicator();
-                    addMessage(`抱歉，出现了错误：${data.error || '未知错误'}`, 'ai');
+                    const errorMessage = data.detail || data.error || `HTTP ${response.status}: ${response.statusText}`;
+                    addMessage(`抱歉，出现了错误：${errorMessage}`, 'ai');
                 }
             } catch (error) {
                 hideTypingIndicator();
+                console.error('聊天请求失败:', error);
                 addMessage('网络连接出现问题，请稍后重试', 'ai');
-                console.error('Error:', error);
             }
         }
 
@@ -559,20 +572,28 @@
         async function loadMemoryStats() {
             try {
                 const response = await fetch('/memory/stats');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
                 const data = await response.json();
                 updateMemoryStats(data);
             } catch (error) {
-                console.error('加载记忆状态失败:', error);
-                // 保持默认值不变
+                console.error('❌ 加载记忆状态失败:', error);
+                // 设置默认值
+                resetMemoryStats();
             }
         }
 
         // 更新记忆状态
         function updateMemoryStats(stats) {
-            if (!stats) return;
+            if (!stats) {
+                console.warn('⚠️ 记忆状态数据为空');
+                return;
+            }
             
             // 更新轮数
-            memoryRounds.textContent = stats.conversation_count || 0;
+            const roundCount = stats.conversation_count || 0;
+            memoryRounds.textContent = roundCount;
             
             // 更新使用率
             const usageRatio = stats.memory_usage_ratio || 0;
@@ -604,31 +625,284 @@
         }
 
         // 记忆详情点击事件
+        function showMemoryModal(data) {
+            // 移除已存在的modal
+            const oldModal = document.getElementById('memoryModal');
+            if (oldModal) oldModal.remove();
+
+            const modal = document.createElement('div');
+            modal.id = 'memoryModal';
+            modal.style.position = 'fixed';
+            modal.style.left = '0';
+            modal.style.top = '0';
+            modal.style.width = '100vw';
+            modal.style.height = '100vh';
+            modal.style.background = 'rgba(0,0,0,0.6)';
+            modal.style.zIndex = '9999';
+            modal.style.display = 'flex';
+            modal.style.alignItems = 'center';
+            modal.style.justifyContent = 'center';
+            modal.style.backdropFilter = 'blur(4px)';
+
+            const content = document.createElement('div');
+            content.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            content.style.padding = '40px';
+            content.style.borderRadius = '20px';
+            content.style.maxWidth = '1200px';
+            content.style.width = '95vw';
+            content.style.maxHeight = '90vh';
+            content.style.overflow = 'auto';
+            content.style.position = 'relative';
+            content.style.boxShadow = '0 20px 40px rgba(0,0,0,0.3)';
+            content.style.border = '2px solid rgba(255,255,255,0.1)';
+            content.style.color = 'white';
+            content.style.fontFamily = 'Inter, sans-serif';
+
+            // 关闭按钮
+            const closeBtn = document.createElement('button');
+            closeBtn.innerHTML = '✕';
+            closeBtn.style.position = 'absolute';
+            closeBtn.style.top = '16px';
+            closeBtn.style.right = '20px';
+            closeBtn.style.fontSize = '1.5rem';
+            closeBtn.style.background = 'rgba(255,255,255,0.2)';
+            closeBtn.style.border = 'none';
+            closeBtn.style.borderRadius = '50%';
+            closeBtn.style.width = '36px';
+            closeBtn.style.height = '36px';
+            closeBtn.style.cursor = 'pointer';
+            closeBtn.style.color = 'white';
+            closeBtn.style.display = 'flex';
+            closeBtn.style.alignItems = 'center';
+            closeBtn.style.justifyContent = 'center';
+            closeBtn.style.transition = 'all 0.3s ease';
+            closeBtn.onmouseover = () => {
+                closeBtn.style.background = 'rgba(255,255,255,0.3)';
+                closeBtn.style.transform = 'scale(1.1)';
+            };
+            closeBtn.onmouseout = () => {
+                closeBtn.style.background = 'rgba(255,255,255,0.2)';
+                closeBtn.style.transform = 'scale(1)';
+            };
+            closeBtn.onclick = () => modal.remove();
+            content.appendChild(closeBtn);
+
+            // 标题
+            const title = document.createElement('h2');
+            title.textContent = '🧠 智能记忆详情';
+            title.style.marginTop = '0';
+            title.style.marginBottom = '32px';
+            title.style.fontSize = '2rem';
+            title.style.fontWeight = '600';
+            title.style.textAlign = 'center';
+            title.style.textShadow = '0 2px 4px rgba(0,0,0,0.3)';
+            content.appendChild(title);
+
+            // 创建网格容器
+            const gridContainer = document.createElement('div');
+            gridContainer.style.display = 'grid';
+            gridContainer.style.gridTemplateColumns = '1fr 1fr';
+            gridContainer.style.gap = '24px';
+            gridContainer.style.marginBottom = '20px';
+            content.appendChild(gridContainer);
+
+            // 统计信息卡片
+            const stats = data.stats || {};
+            const statsCard = document.createElement('div');
+            statsCard.style.background = 'rgba(255,255,255,0.1)';
+            statsCard.style.padding = '20px';
+            statsCard.style.borderRadius = '12px';
+            statsCard.style.backdropFilter = 'blur(10px)';
+            statsCard.style.border = '1px solid rgba(255,255,255,0.2)';
+            
+            statsCard.innerHTML = `
+                <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                    <span style="font-size: 1.5rem; margin-right: 8px;">📊</span>
+                    <strong style="font-size: 1.1rem;">统计信息</strong>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; font-size: 0.9rem;">
+                    <div>对话轮数: <span style="color: #ffd700; font-weight: 600;">${stats.conversation_count || 0}</span></div>
+                    <div>Token使用: <span style="color: #ffd700; font-weight: 600;">${stats.estimated_tokens || 0}/${stats.max_tokens || 0}</span></div>
+                    <div>使用率: <span style="color: #ffd700; font-weight: 600;">${Math.round((stats.memory_usage_ratio || 0) * 100)}%</span></div>
+                    <div>行为模式: <span style="color: #ffd700; font-weight: 600;">${stats.pattern_count || 0}种</span></div>
+                </div>
+            `;
+            gridContainer.appendChild(statsCard);
+
+            // 用户画像卡片
+            if (data.user_profile && data.user_profile.summary) {
+                const profileCard = document.createElement('div');
+                profileCard.style.background = 'rgba(255,255,255,0.1)';
+                profileCard.style.padding = '20px';
+                profileCard.style.borderRadius = '12px';
+                profileCard.style.backdropFilter = 'blur(10px)';
+                profileCard.style.border = '1px solid rgba(255,255,255,0.2)';
+                
+                let profileContent = `
+                    <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                        <span style="font-size: 1.5rem; margin-right: 8px;">👤</span>
+                        <strong style="font-size: 1.1rem;">用户画像分析</strong>
+                    </div>
+                    <div style="font-size: 0.9rem; line-height: 1.6; margin-bottom: 12px;">
+                        ${data.user_profile.summary}
+                    </div>
+                `;
+                
+                if (data.user_profile.personality_traits && data.user_profile.personality_traits.length > 0) {
+                    profileContent += `
+                        <div style="margin-top: 12px;">
+                            <strong style="color: #ffd700;">个性特征:</strong>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                                ${data.user_profile.personality_traits.map(trait => 
+                                    `<span style="background: rgba(255,215,0,0.2); padding: 6px 12px; border-radius: 16px; font-size: 0.85rem; border: 1px solid rgba(255,215,0,0.3);">${trait}</span>`
+                                ).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                profileCard.innerHTML = profileContent;
+                gridContainer.appendChild(profileCard);
+            } else {
+                // 如果用户画像为空，创建一个占位卡片
+                const placeholderCard = document.createElement('div');
+                placeholderCard.style.background = 'rgba(255,255,255,0.05)';
+                placeholderCard.style.padding = '20px';
+                placeholderCard.style.borderRadius = '12px';
+                placeholderCard.style.border = '1px dashed rgba(255,255,255,0.2)';
+                placeholderCard.style.display = 'flex';
+                placeholderCard.style.alignItems = 'center';
+                placeholderCard.style.justifyContent = 'center';
+                placeholderCard.style.color = 'rgba(255,255,255,0.6)';
+                placeholderCard.innerHTML = '<div style="text-align: center;"><span style="font-size: 2rem; margin-bottom: 8px; display: block;">👤</span>用户画像数据不足</div>';
+                gridContainer.appendChild(placeholderCard);
+            }
+
+            // 上下文摘要
+            if (data.context_summary && data.context_summary !== "暂无记忆上下文") {
+                const ctxCard = document.createElement('div');
+                ctxCard.style.background = 'rgba(255,255,255,0.1)';
+                ctxCard.style.padding = '20px';
+                ctxCard.style.borderRadius = '12px';
+                ctxCard.style.backdropFilter = 'blur(10px)';
+                ctxCard.style.border = '1px solid rgba(255,255,255,0.2)';
+                ctxCard.innerHTML = `
+                    <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                        <span style="font-size: 1.5rem; margin-right: 8px;">📋</span>
+                        <strong style="font-size: 1.1rem;">上下文摘要</strong>
+                    </div>
+                    <div style="font-size: 0.9rem; line-height: 1.6;">${data.context_summary}</div>
+                `;
+                gridContainer.appendChild(ctxCard);
+            } else {
+                // 如果上下文摘要为空，创建一个占位卡片
+                const placeholderCard = document.createElement('div');
+                placeholderCard.style.background = 'rgba(255,255,255,0.05)';
+                placeholderCard.style.padding = '20px';
+                placeholderCard.style.borderRadius = '12px';
+                placeholderCard.style.border = '1px dashed rgba(255,255,255,0.2)';
+                placeholderCard.style.display = 'flex';
+                placeholderCard.style.alignItems = 'center';
+                placeholderCard.style.justifyContent = 'center';
+                placeholderCard.style.color = 'rgba(255,255,255,0.6)';
+                placeholderCard.innerHTML = '<div style="text-align: center;"><span style="font-size: 2rem; margin-bottom: 8px; display: block;">📋</span>暂无上下文摘要</div>';
+                gridContainer.appendChild(placeholderCard);
+            }
+
+            // 行为模式分析
+            if (stats.user_patterns && Object.keys(stats.user_patterns).length > 0) {
+                const patternCard = document.createElement('div');
+                patternCard.style.background = 'rgba(255,255,255,0.1)';
+                patternCard.style.padding = '20px';
+                patternCard.style.borderRadius = '12px';
+                patternCard.style.backdropFilter = 'blur(10px)';
+                patternCard.style.border = '1px solid rgba(255,255,255,0.2)';
+                
+                const patternItems = Object.entries(stats.user_patterns)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([pattern, count]) => {
+                        const intensity = count >= 3 ? '🔴' : count >= 2 ? '🟡' : '🟢';
+                        return `<div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                            <span style="font-size: 0.95rem;">${intensity} ${pattern}</span>
+                            <span style="color: #ffd700; font-weight: 600; font-size: 0.95rem;">${count}次</span>
+                        </div>`;
+                    }).join('');
+                
+                patternCard.innerHTML = `
+                    <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                        <span style="font-size: 1.5rem; margin-right: 8px;">🎯</span>
+                        <strong style="font-size: 1.1rem;">行为模式分析</strong>
+                    </div>
+                    <div style="font-size: 0.9rem;">
+                        ${patternItems}
+                    </div>
+                `;
+                gridContainer.appendChild(patternCard);
+            } else {
+                // 如果行为模式为空，创建一个占位卡片
+                const placeholderCard = document.createElement('div');
+                placeholderCard.style.background = 'rgba(255,255,255,0.05)';
+                placeholderCard.style.padding = '20px';
+                placeholderCard.style.borderRadius = '12px';
+                placeholderCard.style.border = '1px dashed rgba(255,255,255,0.2)';
+                placeholderCard.style.display = 'flex';
+                placeholderCard.style.alignItems = 'center';
+                placeholderCard.style.justifyContent = 'center';
+                placeholderCard.style.color = 'rgba(255,255,255,0.6)';
+                placeholderCard.innerHTML = '<div style="text-align: center;"><span style="font-size: 2rem; margin-bottom: 8px; display: block;">🎯</span>暂无行为模式数据</div>';
+                gridContainer.appendChild(placeholderCard);
+            }
+
+            // 关键洞察
+            if (data.long_term_details && data.long_term_details.key_insights && data.long_term_details.key_insights.length > 0) {
+                const insightCard = document.createElement('div');
+                insightCard.style.background = 'rgba(255,255,255,0.1)';
+                insightCard.style.padding = '20px';
+                insightCard.style.borderRadius = '12px';
+                insightCard.style.backdropFilter = 'blur(10px)';
+                insightCard.style.border = '1px solid rgba(255,255,255,0.2)';
+                
+                const insightItems = data.long_term_details.key_insights
+                    .slice(-3) // 只显示最近3条
+                    .map(insight => `<div style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 0.9rem; line-height: 1.5;">💡 ${insight}</div>`)
+                    .join('');
+                
+                insightCard.innerHTML = `
+                    <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                        <span style="font-size: 1.5rem; margin-right: 8px;">💡</span>
+                        <strong style="font-size: 1.1rem;">关键洞察</strong>
+                    </div>
+                    <div>
+                        ${insightItems}
+                    </div>
+                `;
+                gridContainer.appendChild(insightCard);
+            }
+
+            modal.appendChild(content);
+            document.body.appendChild(modal);
+            
+            // 添加动画效果
+            content.style.opacity = '0';
+            content.style.transform = 'scale(0.8)';
+            setTimeout(() => {
+                content.style.transition = 'all 0.3s ease';
+                content.style.opacity = '1';
+                content.style.transform = 'scale(1)';
+            }, 10);
+        }
+
         memoryIndicator.addEventListener('click', async function() {
             try {
                 const response = await fetch('/memory/summary');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
                 const data = await response.json();
-                
-                let message = `🧠 智能记忆状态:\n\n`;
-                message += `📊 统计信息:\n`;
-                message += `• 对话轮数: ${data.stats.conversation_count}\n`;
-                message += `• Token使用: ${data.stats.estimated_tokens}/${data.stats.max_tokens}\n`;
-                message += `• 使用率: ${Math.round(data.stats.memory_usage_ratio * 100)}%\n`;
-                
-                if (data.context_summary) {
-                    message += `\n📋 上下文摘要:\n${data.context_summary}`;
-                }
-                
-                if (data.stats.user_patterns && Object.keys(data.stats.user_patterns).length > 0) {
-                    message += `\n\n🎯 行为模式分析:\n`;
-                    Object.entries(data.stats.user_patterns).forEach(([pattern, count]) => {
-                        message += `• ${pattern}: ${count}次\n`;
-                    });
-                }
-                
-                alert(message);
+                showMemoryModal(data);
             } catch (error) {
                 console.error('获取记忆详情失败:', error);
+                alert('获取记忆详情失败，请稍后重试');
             }
         });
 

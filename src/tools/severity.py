@@ -2,50 +2,78 @@ from typing import Type
 import json
 from pydantic import BaseModel, Field
 from langchain.tools import BaseTool
-from ..example_selector import ExampleSelector
-from ..config import llm
+from ..prompts.prompts import HELP_INNER_GUIDE, ROAST_INNER_GUIDE
 
 class SeverityInput(BaseModel):
     user_text: str = Field(..., description="用户最新发言")
     context_summary: str = Field("", description="上文摘要，可为空")
+    pre_analysis: str = Field("", description="预分析结果（JSON格式）")
 
 class SeverityTool(BaseTool):
     name = "severity_analyzer"
-    description = ("🎯 恋爱脑程度识别器：若识别到主体用户的恋爱情感相关话题，优先调用当前工具，用于评估用户恋爱脑指数(0-100)和风险等级。"
-                   "轻(0-39):过度理想化、焦虑但不影响生活；中(40-69):金钱付出、隐瞒亲友、情绪依赖；"
-                   "重(70-89):大额转账、脱离支持网络、精神操控；危(90-100):自伤、家暴、威胁、限制自由。"
-                   "输出JSON格式，危险等级自动触发help_tool。")
+    description = ("反恋爱脑工具：只有用户明确讨论恋爱相关话题时 或 预分析结果中level为“轻/中/重/危险”时，才会调用当前工具来生成毒舌锐评/情感分析回复。")
     args_schema: Type[BaseModel] = SeverityInput
-    
-    def __init__(self):
-        super().__init__()
-        # 将 example_selector 存储为私有属性，避免 Pydantic 验证
-        object.__setattr__(self, '_example_selector', ExampleSelector(max_examples=2))
 
-    def _run(self, user_text: str, context_summary: str = "") -> str:
-        # 使用智能示例选择器生成动态prompt
-        prompt = self._example_selector.generate_dynamic_prompt(user_text, context_summary)
-        
-        # 调用LLM进行分析
+    def _run(self, user_text: str, context_summary: str = "", pre_analysis: str = "") -> str:
+        """恋爱脑程度识别器 - 简化版本，直接返回格式化prompt"""
         try:
-            response = llm().invoke(prompt)
-            # 尝试解析响应中的JSON
-            content = response.content if hasattr(response, 'content') else str(response)
+            # 如果有预分析结果，直接返回格式化的结果
+            if pre_analysis:
+                try:
+                    # 解析预分析结果
+                    analysis_data = json.loads(pre_analysis)
+                    
+                    # 根据分析结果生成相应的回复
+                    if analysis_data.get("switch_to_help", False):
+                        # 危险情况，返回帮助建议
+                        return self._generate_help_response(user_text, analysis_data, context_summary)
+                    else:
+                        # 其他情况，返回毒舌锐评
+                        return self._generate_roast_response(user_text, analysis_data, context_summary)
+                        
+                except json.JSONDecodeError:
+                    # 预分析结果解析失败，直接返回毒舌锐评
+                    pass
             
-            # 查找JSON部分
-            start_idx = content.find('{')
-            end_idx = content.rfind('}') + 1
-            if start_idx != -1 and end_idx > start_idx:
-                json_str = content[start_idx:end_idx]
-                # 验证JSON格式
-                parsed = json.loads(json_str)
-                return json_str
-            else:
-                # 如果没有找到JSON，返回默认值
-                return '{"index": 30, "level": "轻", "signals": ["未能解析具体信号"], "switch_to_help": false}'
+            # 简化处理：直接返回毒舌锐评prompt
+            return self._generate_roast_response(user_text, {"level": "轻"}, context_summary)
+                    
         except Exception as e:
-            # 出错时返回默认值
-            return '{"index": 30, "level": "轻", "signals": ["分析出错"], "switch_to_help": false}'
+            # 全局错误处理
+            return f"""姐🧠脑子宕机了！但姐建议你冷静一下🚬"""
+
+    def _generate_help_response(self, user_text: str, analysis_data: dict, context_summary: str) -> str:
+        """生成帮助建议回复"""
+        from ..prompts.prompt_config import HELP_EXECUTION_PROMPT
+        from ..core.config import llm
+        
+        prompt = HELP_EXECUTION_PROMPT.format(
+            user_text=user_text,
+            help_guide=HELP_INNER_GUIDE,
+        )
+        
+        # 直接调用LLM生成回复
+        llm_instance = llm(temperature=0.7)
+        response = llm_instance.invoke(prompt)
+        return response.content if hasattr(response, 'content') else str(response)
+
+    def _generate_roast_response(self, user_text: str, analysis_data: dict, context_summary: str) -> str:
+        """生成毒舌锐评回复"""
+        from ..prompts.prompt_config import ROAST_EXECUTION_PROMPT
+        from ..core.config import llm
+        
+        level = analysis_data.get("level", "轻")
+        
+        prompt = ROAST_EXECUTION_PROMPT.format(
+            user_text=user_text,
+            level=level,
+            roast_guide=ROAST_INNER_GUIDE,
+        )
+        
+        # 直接调用LLM生成回复
+        llm_instance = llm(temperature=0.7)
+        response = llm_instance.invoke(prompt)
+        return response.content if hasattr(response, 'content') else str(response)
 
     def _arun(self, *args, **kwargs):
         raise NotImplementedError

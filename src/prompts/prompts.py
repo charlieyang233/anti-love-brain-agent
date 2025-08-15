@@ -1,0 +1,33 @@
+# 🎀 拽姐 Anti Love Brain Agent - Prompt配置
+# 此文件保持向后兼容，实际prompt配置已迁移到 prompt_config.py
+
+from .prompt_config import (
+    GLOBAL_SYSTEM_PROMPT,
+    ROAST_INNER_GUIDE,
+    HELP_INNER_GUIDE,
+    TALK_INNER_GUIDE,
+    SEAKING_INNER_GUIDE,
+    ROAST_EXECUTION_PROMPT,
+    HELP_EXECUTION_PROMPT,
+    TALK_EXECUTION_PROMPT,
+    SEAKING_EXECUTION_PROMPT,
+    # SEVERITY_ANALYZER_PROMPT,  # 已废弃，使用智能示例选择器替代
+    SEAKING_PERSONAS,
+    RISK_SIGNALS
+)
+
+# 向后兼容的导出
+__all__ = [
+    'GLOBAL_SYSTEM_PROMPT',
+    'ROAST_INNER_GUIDE', 
+    'HELP_INNER_GUIDE',
+    'TALK_INNER_GUIDE',
+    'SEAKING_INNER_GUIDE',
+    'ROAST_EXECUTION_PROMPT',
+    'HELP_EXECUTION_PROMPT',
+    'TALK_EXECUTION_PROMPT', 
+    'SEAKING_EXECUTION_PROMPT',
+    # 'SEVERITY_ANALYZER_PROMPT',  # 已废弃，使用智能示例选择器替代
+    'SEAKING_PERSONAS',
+    'RISK_SIGNALS'
+]
