@@ -12,7 +12,7 @@ class SeakingInput(BaseModel):
 
 class SeakingTool(BaseTool):
     name = "seaking_tool"
-    description = ("海王模拟器工具：在用户明确要求模拟/挑战/对战/练习AI海王挑战游戏时使用，需要模拟AI海王和用户进行对战。")
+    description = ("海王模拟器工具：在用户明确要求模拟海王对战/恋爱游戏/模拟海王套路/练习反pua/练习海王话术/挑战海王游戏/海王模拟对战时使用，需要模拟AI海王和用户进行对战。")
     args_schema: Type[BaseModel] = SeakingInput
 
     def _run(self, user_text: str, persona: str = "ENTJ-高阶PUA", prev_score: int = 50) -> str:
