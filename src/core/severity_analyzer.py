@@ -187,6 +187,19 @@ class AsyncSeverityAnalyzer:
         # 检查是否为恋爱话题
         has_love_content = any(keyword in user_text for keyword in love_keywords)
         
+        # 特殊处理：海王模拟相关关键词
+        seaking_keywords = ['海王', '模拟', '对战', '话术', '练习']
+        is_seaking_request = any(keyword in user_text for keyword in seaking_keywords)
+        
+        if is_seaking_request:
+            return SeverityResult(
+                index=50,
+                level="中",
+                signals=["海王模拟请求"],
+                switch_to_help=False,
+                confidence=0.9
+            )
+        
         if not has_love_content:
             return SeverityResult(
                 index=0,
