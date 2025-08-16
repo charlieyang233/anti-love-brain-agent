@@ -1,22 +1,40 @@
-from typing import Type, Optional
+from typing import Type
 from pydantic import BaseModel, Field
 from langchain.tools import BaseTool
-from ..prompts import HELP_INNER_GUIDE
+from ..prompts.prompts import HELP_INNER_GUIDE
+from ..prompts.prompt_config import HELP_EXECUTION_PROMPT
+
 
 class HelpInput(BaseModel):
     user_text: str = Field(..., description="用户发言")
-    evidence: Optional[str] = Field("", description="可选：搜索摘要或证据")
+    memory_context: str = Field(default="", description="由Agent提供的记忆上下文（可选）")
 
 class HelpTool(BaseTool):
     name = "help_tool"
-    description = ("当用户明确求助或识别为危急时使用。输出专家式拆解+行动建议，语气收敛但保留拽姐收尾。")
+    description = ("情感求助分析工具：只有用户有显著的情感求助意图或恋爱脑严重程度为【危险】等级场景，才使用该工具输出情感咨询专家的建议。")
     args_schema: Type[BaseModel] = HelpInput
 
-    def _run(self, user_text: str, evidence: str = "") -> str:
-        return f"""请用“高级情感专家”+拽姐收尾的混合口吻，输出一段自然连贯的话。
-用户：{user_text}
-可融入证据：{evidence or "无"}
-写作要求：{HELP_INNER_GUIDE}"""
+    def _run(self, user_text: str, memory_context: str = "") -> str:
+        """情感求助分析工具 - 直接调用LLM生成回复"""
+        try:
+            from ..core.config import llm
+            
+            # 格式化prompt模板
+            formatted_prompt = HELP_EXECUTION_PROMPT.format(
+                user_text=user_text,
+                evidence="",  # 搜索功能已移除，evidence为空
+                help_guide=HELP_INNER_GUIDE,
+            )
+            
+            # 直接调用LLM生成回复
+            llm_instance = llm(temperature=0.2)
+            response = llm_instance.invoke(formatted_prompt)
+            
+            # 返回生成的回复内容
+            return response.content if hasattr(response, 'content') else str(response)
+            
+        except Exception as e:
+            return f"姐妹啊，姐脑子暂时宕机了🚬等我缓缓先！"
 
     def _arun(self, *args, **kwargs):
         raise NotImplementedError

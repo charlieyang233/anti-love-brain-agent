@@ -4,10 +4,10 @@ from langchain_openai import ChatOpenAI
 
 load_dotenv()
 
-BASE_URL = os.getenv("OPENAI_BASE_URL", "https://openai.api2d.net/v1")
-MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+BASE_URL = os.getenv("OPENAI_BASE_URL")
+MODEL = os.getenv("OPENAI_MODEL")
 
-def llm(temperature: float = 0.7):
+def llm(temperature: float = 0):
     return ChatOpenAI(
         api_key=os.getenv("OPENAI_API_KEY"),
         base_url=BASE_URL,

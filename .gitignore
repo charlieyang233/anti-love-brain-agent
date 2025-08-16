@@ -31,3 +31,16 @@ logs/
 # Temporary files
 *.tmp
 *.temp
+
+# Railway deployment artifacts
+.railway/
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Additional Python artifacts
+*.egg-info/
+dist/
+build/
