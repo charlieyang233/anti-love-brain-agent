@@ -28,7 +28,6 @@ def build_agent(memory_manager=None, answer_style: str = "") -> AgentExecutor:
     # 注意：SeakingTool已被重构为SeakingChain，不再用于Agent工具列表
     
     tools = [
-        # SeverityTool(),  # 已移除：现在在app.py中直接进行预分析并通过动态人设传递结果
         HelpTool(),
         TalkTool(),
     ]

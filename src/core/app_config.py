@@ -10,7 +10,7 @@ class AppConfig:
     """应用配置管理类"""
     
     # 海王对战模式
-    SEAKING_MODES = ["🌊对战海王", "🍵反茶艺大师", "🌈决战通讯录之巅"]
+    SEAKING_MODES = ["🌊对战海王", "🍵反茶艺大师", "🌈决战通讯录之巅", "💃姬圈擂台赛"]
     
     # 记忆存储配置
     MEMORY_STORAGE_TYPE = os.getenv("MEMORY_STORAGE_TYPE", "memory")
