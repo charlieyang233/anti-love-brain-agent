@@ -4,7 +4,7 @@ from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from ..prompts.prompts import GLOBAL_SYSTEM_PROMPT
 from .config import llm
 from ..memory.memory_manager import SmartMemoryManager
-from ..tools.severity import SeverityTool
+# from ..tools.severity import SeverityTool  # 已移除：现在在app.py中直接进行预分析
 from ..tools.help import HelpTool
 
 from ..tools.talk import TalkTool
@@ -14,27 +14,30 @@ from ..tools.talk import TalkTool
 # 全局记忆管理器实例（用于向后兼容）
 smart_memory = SmartMemoryManager(max_tokens=1500, summary_trigger_ratio=0.8)
 
-def build_agent(memory_manager=None) -> AgentExecutor:
+def build_agent(memory_manager=None, answer_style: str = "") -> AgentExecutor:
     """
     构建智能代理
     Args:
         memory_manager: 可选的内存管理器，如果未提供则使用全局默认实例
+        answer_style: 动态人设模板内容，将注入到全局prompt中
     """
     # 如果没有提供内存管理器，使用全局默认实例
     if memory_manager is None:
         memory_manager = smart_memory
     
-    # 延迟导入SeakingTool以避免循环导入
-    from ..tools.seaking import SeakingTool
+    # 注意：SeakingTool已被重构为SeakingChain，不再用于Agent工具列表
     
     tools = [
-        SeverityTool(),
+        # SeverityTool(),  # 已移除：现在在app.py中直接进行预分析并通过动态人设传递结果
         HelpTool(),
         TalkTool(),
     ]
 
+    # 动态注入answer_style到全局prompt
+    enhanced_system_prompt = GLOBAL_SYSTEM_PROMPT.format(answer_style=answer_style)
+    
     prompt = ChatPromptTemplate.from_messages([
-        ("system", GLOBAL_SYSTEM_PROMPT),
+        ("system", enhanced_system_prompt),
         MessagesPlaceholder("chat_history"),
         ("human", "{input}"),
         MessagesPlaceholder("agent_scratchpad"),

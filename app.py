@@ -12,81 +12,32 @@ from typing import Dict, Any, Optional
 # 加载环境变量
 load_dotenv()
 
+# 导入配置管理
+from src.core.app_config import AppConfig
+
 # 配置LangSmith（必须在导入agent之前设置）
-os.environ["LANGCHAIN_TRACING_V2"] = "true"
-os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
-os.environ["LANGCHAIN_PROJECT"] = "anti-love-test"
+AppConfig.setup_langsmith()
 
 # 修复导入路径
 from src.core.agent import build_agent
-from src.core.severity_analyzer import analyze_severity, SeverityResult
+from src.core.severity_analyzer import SeverityResult, severity_analyzer
 from src.memory.memory_manager import SmartMemoryManager
-# 延迟导入SeakingTool以避免循环导入
-# from src.tools.seaking import SeakingTool
 
 app = FastAPI(title="Anti Love Brain - 拽姐 Agent")
 
 # 挂载静态文件
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# 记忆存储配置
-MEMORY_STORAGE_TYPE = os.getenv("MEMORY_STORAGE_TYPE", "memory")  # "memory" 或 "redis"
-ENABLE_IP_ISOLATION = os.getenv("ENABLE_IP_ISOLATION", "true").lower() == "true"
-
-# 检查是否为开发环境
-IS_DEVELOPMENT = os.getenv("RAILWAY_ENVIRONMENT") is None and os.getenv("PORT") is None
-
-print(f"[CONFIG] IP Isolation: {ENABLE_IP_ISOLATION}")
-print(f"[CONFIG] Memory Storage: {MEMORY_STORAGE_TYPE}")
-print(f"[CONFIG] Development Mode: {IS_DEVELOPMENT}")
-
-# 🌊 海王对战人设库
-SEAKING_PERSONAS = {
-    "🌊对战海王": {
-        "personas": [
-            "ENTJ-霸道总裁型海王",
-            "ENFP-温柔暖男型海王", 
-            "ISTP-高冷学霸型海王",
-            "ESFJ-社交达人型海王",
-            "INTJ-神秘精英型海王"
-        ],
-        "default_gender": "男",
-        "user_gender": "女",
-        "challenge_type": "海王对战"
-    },
-    "🍵反茶艺大师": {
-        "personas": [
-            "ENFJ-绿茶心机型海王",
-            "ISFP-白莲花型海王",
-            "ESTJ-女王型海王",
-            "INFP-文艺女神型海王", 
-            "ENTP-毒舌女王型海王"
-        ],
-        "default_gender": "女",
-        "user_gender": "男",
-        "challenge_type": "茶艺大师"
-    },
-    "🌈决战通讯录之巅": {
-        "personas": [
-            "ENFP-彩虹暖男型海王",
-            "ISTJ-精英同志型海王",
-            "ESFP-派对王子型海王",
-            "INFJ-文艺同志型海王",
-            "ESTP-运动型海王"
-        ],
-        "default_gender": "男",
-        "user_gender": "男", 
-        "challenge_type": "通讯录之巅"
-    }
-}
+# 打印配置信息
+AppConfig.print_startup_info()
 
 def get_user_identifier(request: Request) -> str:
     """统一的用户标识获取函数"""
-    if not ENABLE_IP_ISOLATION:
+    if not AppConfig.ENABLE_IP_ISOLATION:
         return "default_user"
     
     # 在开发环境中，可以使用固定标识符以便调试
-    if IS_DEVELOPMENT:
+    if AppConfig.IS_DEVELOPMENT:
         # 开发环境下为了方便调试，使用固定用户标识
         return "dev_user"
     
@@ -130,7 +81,9 @@ def get_memory_manager(user_ip: str):
 
 def generate_seaking_persona(button_type: str) -> Dict[str, Any]:
     """根据按钮类型生成随机海王人设"""
-    if button_type not in SEAKING_PERSONAS:
+    personas_data = AppConfig.load_personas()
+    
+    if button_type not in personas_data:
         return {
             "persona": "ENTJ-高阶PUA",
             "gender": "男",
@@ -138,21 +91,28 @@ def generate_seaking_persona(button_type: str) -> Dict[str, Any]:
             "challenge_type": "海王对战"
         }
     
-    config = SEAKING_PERSONAS[button_type]
-    selected_persona = random.choice(config["personas"])
+    config = personas_data[button_type]
+    if "personas" in config and config["personas"]:
+        selected_persona = random.choice(config["personas"])
+        return {
+            "persona": selected_persona.get("name", "ENTJ-高阶PUA"),
+            "gender": selected_persona.get("gender", "男"),
+            "user_gender": selected_persona.get("user_gender", "女"),
+            "challenge_type": selected_persona.get("challenge_type", "海王对战")
+        }
     
+    # 降级处理
     return {
-        "persona": selected_persona,
-        "gender": config["default_gender"],
-        "user_gender": config["user_gender"],
-        "challenge_type": config["challenge_type"]
+        "persona": "ENTJ-高阶PUA",
+        "gender": "男",
+        "user_gender": "女",
+        "challenge_type": "海王对战"
     }
 
 def parse_seaking_score(ai_response: str, prev_score: int) -> tuple[int, bool]:
     """从AI回复中解析得分和胜利状态"""
     try:
         # 查找拽姐旁白中的得分信息
-        import re
         
         # 匹配"当前得分：X分"或"得分：X分"的模式
         score_patterns = [
@@ -186,7 +146,7 @@ def parse_seaking_score(ai_response: str, prev_score: int) -> tuple[int, bool]:
 async def read_index():
     """主页面"""
     response = FileResponse('static/index.html')
-    if IS_DEVELOPMENT:
+    if AppConfig.IS_DEVELOPMENT:
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "0"
@@ -203,11 +163,11 @@ async def chat(request: ChatRequest, req: Request):
         agent = user_session["agent"]
         
         # 🌊 检查是否为海王对战模式
-        if request.button_type and request.button_type in ["🌊对战海王", "🍵反茶艺大师", "🌈决战通讯录之巅"]:
+        if request.button_type and AppConfig.is_seaking_mode(request.button_type):
             return await handle_seaking_mode(request, memory_manager, user_ip)
         
-        # 正常聊天模式 - 使用原有逻辑
-        return await handle_normal_chat(request, memory_manager, agent)
+        # 正常聊天模式 - 使用同步优化逻辑
+        return handle_normal_chat(request, memory_manager, agent)
         
     except Exception as e:
         print(f"[Error] Chat processing failed: {e}")
@@ -230,58 +190,49 @@ async def handle_seaking_mode(request: ChatRequest, memory_manager, user_ip: str
             # 生成海王人设
             persona_config = generate_seaking_persona(request.button_type)
         
-        # 延迟导入SeakingTool以避免循环导入
-        from src.tools.seaking import SeakingTool
-        seaking_tool = SeakingTool()
+        # 使用新的SeakingChain
+        from src.tools.seaking import SeakingChain
+        seaking_chain = SeakingChain()
         
-        # 准备输入参数
-        seaking_input = {
-            "user_text": request.message,
-            "persona": persona_config["persona"],
-            "prev_score": request.seaking_score,
-            "is_first_seaking": request.is_first_seaking,
-            "challenge_type": persona_config["challenge_type"],
-            "gender": persona_config["gender"],
-            "user_gender": persona_config["user_gender"]
-        }
-        
-        # 直接调用SeakingTool
-        ai_response = seaking_tool._run(**seaking_input)
+        # 直接调用SeakingChain
+        ai_response = seaking_chain.run(
+            persona=persona_config["persona"],
+            user_input=request.message,
+            current_score=request.seaking_score,
+            challenge_type=persona_config["challenge_type"]
+        )
         
         # 从AI回复中解析得分和胜利状态
         new_score, is_victory = parse_seaking_score(ai_response, request.seaking_score)
         
-        # 更新记忆（海王对战模式下的简化记忆）
-        memory_manager.add_interaction(
-            user_input=request.message,
-            ai_response=ai_response,
-            love_brain_level="海王对战",
-            risk_signals=["海王对战模式"]
-        )
+        # 检查是否通关
+        if "🎉恭喜挑战成功" in ai_response:
+            is_victory = True
+            new_score = 100
+        
+        # 海王对战模式不更新全局记忆，避免影响正常聊天
         
         return {
             "response": ai_response,
             "love_brain_index": 0,  # 海王对战模式下不计算恋爱脑指数
             "love_brain_level": "海王对战",
             "risk_signals": ["海王对战模式"],
-            "memory_stats": memory_manager.get_memory_stats(),
+            "memory_stats": memory_manager.get_memory_stats(),  # 保持原有记忆状态
             "seaking_mode": {
                 "button_type": request.button_type,
                 "persona": persona_config["persona"],
                 "challenge_type": persona_config["challenge_type"],
                 "current_score": new_score,
                 "is_victory": is_victory,
-                "is_first_seaking": request.is_first_seaking
+                "is_first_seaking": False  # 新的Chain不需要首次对话概念
             },
             "routing_info": {
                 "routing_type": "direct_seaking_tool",
-                "success": True,
-                "confidence": 1.0
+                "success": True
             },
             "performance": {
                 "token_saved": True,
-                "processing_time_ms": 0,
-                "routing_efficiency": 1.0
+                "processing_time_ms": 0
             }
         }
         
@@ -292,20 +243,31 @@ async def handle_seaking_mode(request: ChatRequest, memory_manager, user_ip: str
             "love_brain_index": 0,
             "love_brain_level": "海王对战",
             "risk_signals": [],
-            "memory_stats": memory_manager.get_memory_stats(),
+            "memory_stats": memory_manager.get_memory_stats(),  # 保持原有记忆状态
             "seaking_mode": {
                 "button_type": request.button_type,
                 "error": True
             }
         }
 
-async def handle_normal_chat(request: ChatRequest, memory_manager, agent):
-    """处理正常聊天模式"""
+def handle_normal_chat(request: ChatRequest, memory_manager, agent):
+    """处理正常聊天模式 - 全同步架构，简化设计"""
+    import time
+    
+    print(f"[DEBUG] handle_normal_chat 被调用，使用全同步架构")
+    
+    # 开始性能计时
+    start_time = time.time()
+    
     # 获取记忆上下文
     memory_context = memory_manager.get_memory_context_for_tool()
     
-    # 🚀 异步severity分析 - Agent调用前的预处理器
-    severity_result = await analyze_severity(request.message, memory_context)
+    # 🚀 同步severity分析 + 动态人设选择
+    analysis_start = time.time()
+    analysis_result = severity_analyzer.analyze_with_answerstyle(request.message, memory_context)
+    analysis_time = time.time() - analysis_start
+    
+    severity_result = SeverityResult(**analysis_result["severity"])
     
     # 准备传递给Agent的输入
     if memory_context and memory_context != "无历史记忆":
@@ -321,14 +283,22 @@ async def handle_normal_chat(request: ChatRequest, memory_manager, agent):
     if request.persona and request.persona.strip():
         combined_input += f"\n\n海王人设: {request.persona}"
     
-    # 将预分析结果传递给Agent，用于智能路由
-    pre_analysis_json = severity_result.model_dump_json()
-    combined_input += f"\n\n预分析结果: {pre_analysis_json}"
+    # 🎯 构建带动态人设的Agent
+    agent_build_start = time.time()
+    enhanced_agent = build_agent(
+        memory_manager=memory_manager,
+        answer_style=analysis_result["dynamic_prompt"]
+    )
+    agent_build_time = time.time() - agent_build_start
     
-    # 直接调用Agent处理
-    result = agent.invoke({
+    # 注意：预分析结果已通过动态人设注入到Agent的system prompt中，无需重复传递
+    
+    # 🎯 执行带动态人设的Agent
+    agent_exec_start = time.time()
+    result = enhanced_agent.invoke({
         "input": combined_input
     })
+    agent_exec_time = time.time() - agent_exec_start
     ai_response = result.get("output", "处理失败，请重试")
     
     # 使用预分析结果，无需从中间步骤解析
@@ -347,32 +317,40 @@ async def handle_normal_chat(request: ChatRequest, memory_manager, agent):
     # 获取记忆统计
     memory_stats = memory_manager.get_memory_stats()
     
+    # 计算总耗时
+    total_time = time.time() - start_time
+    
     return {
         "response": ai_response,
         "love_brain_index": love_brain_index,
         "love_brain_level": love_brain_level,
         "risk_signals": risk_signals,
         "memory_stats": memory_stats,
-        "severity_analysis": {
-            "confidence": severity_result.confidence,
-            "switch_to_help": severity_result.switch_to_help
-        },
+        # "severity_analysis": 已合并到顶层字段，避免重复数据
+        # "answerstyle_used": 前端未使用，已移除避免数据冗余
         "routing_info": {
-            "routing_type": "async_severity_agent",
-            "final_tools": ["agent"],
-            "success": True,
-            "confidence": 1.0
+            "routing_type": "sync_dynamic_persona_agent",
+            "success": True
         },
         "performance": {
-            "token_saved": True,
-            "processing_time_ms": 0,
+            "total_time_ms": int(total_time * 1000),
+            "analysis_time_ms": int(analysis_time * 1000),
+            "agent_build_time_ms": int(agent_build_time * 1000),
+            "agent_exec_time_ms": int(agent_exec_time * 1000),
+            "architecture": "sync_optimized",
             "routing_efficiency": 1.0
         },
         "debug_info": {} if os.getenv("DEBUG", "false").lower() != "true" else {
-            "architecture": "async_severity_agent",
-            "memory_type": MEMORY_STORAGE_TYPE,
-            "ip_isolation": ENABLE_IP_ISOLATION,
-            "pre_analysis_used": severity_result.index > 0
+            "architecture": "sync_dynamic_persona_agent",
+            "memory_type": AppConfig.MEMORY_STORAGE_TYPE,
+            "ip_isolation": AppConfig.ENABLE_IP_ISOLATION,
+            "pre_analysis_used": severity_result.index > 0,
+            "selected_persona_preview": analysis_result["answerstyle"]["roleset"][:50] + "...",
+            "performance_breakdown": {
+                "analysis_percentage": int((analysis_time / total_time) * 100),
+                "agent_build_percentage": int((agent_build_time / total_time) * 100),
+                "agent_exec_percentage": int((agent_exec_time / total_time) * 100)
+            }
         }
     }
 
@@ -395,7 +373,7 @@ async def reset_chat(req: Request):
         return {
             "message": "会话已重置，短期记忆已清除",
             "memory_stats": memory_manager.get_memory_stats(),
-            "routing_enabled": False,  # 现在使用直接Agent架构
+            "routing_enabled": False,
             "architecture": "direct_agent"
         }
     except Exception as e:
@@ -415,9 +393,9 @@ async def get_system_status(req: Request):
             "status": "running",
             "memory_status": memory_manager.get_memory_stats(),
             "system_config": {
-                "enhanced_routing_enabled": False, # 移除未使用的配置
-                "ip_isolation_enabled": ENABLE_IP_ISOLATION,
-                "memory_storage_type": MEMORY_STORAGE_TYPE,
+                "enhanced_routing_enabled": False,
+                "ip_isolation_enabled": AppConfig.ENABLE_IP_ISOLATION,
+                "memory_storage_type": AppConfig.MEMORY_STORAGE_TYPE,
                 "debug_mode": os.getenv("DEBUG", "false").lower() == "true"
             }
         }
@@ -431,7 +409,7 @@ async def get_routing_stats():
     try:
         return {
             "total_users": len(user_memory_managers),
-            "enhanced_routing_enabled": False, # 移除未使用的配置
+            "enhanced_routing_enabled": False,
             "architecture": "direct_agent",
             "per_user_stats": {}
         }
@@ -508,26 +486,15 @@ async def get_memory_summary(request: Request):
 async def get_seaking_personas():
     """获取海王人设库 - 供前端使用"""
     try:
+        # 从 JSON 文件读取人设配置
+        personas_file = os.path.join("static", "personas.json")
+        with open(personas_file, 'r', encoding='utf-8') as f:
+            personas_data = json.load(f)
+        
         return {
-            "personas": SEAKING_PERSONAS,
-            "button_types": list(SEAKING_PERSONAS.keys()),
-            "default_config": {
-                "🌊对战海王": {
-                    "default_gender": "男",
-                    "user_gender": "女",
-                    "challenge_type": "海王对战"
-                },
-                "🍵反茶艺大师": {
-                    "default_gender": "女", 
-                    "user_gender": "男",
-                    "challenge_type": "茶艺大师"
-                },
-                "🌈决战通讯录之巅": {
-                    "default_gender": "男",
-                    "user_gender": "男", 
-                    "challenge_type": "通讯录之巅"
-                }
-            }
+            "personas": personas_data,
+            "button_types": AppConfig.SEAKING_MODES,
+            "success": True
         }
     except Exception as e:
         print(f"[Error] Get seaking personas failed: {e}")
@@ -541,9 +508,9 @@ if __name__ == "__main__":
     import uvicorn
     
     print("🚀 启动 Anti Love Brain Agent")
-    print(f"📊 增强路由: {'✅ 启用' if False else '❌ 禁用'}") # 移除未使用的配置
-    print(f"🌐 IP隔离: {'✅ 启用' if ENABLE_IP_ISOLATION else '❌ 禁用'}")
-    print(f"💾 记忆存储: {MEMORY_STORAGE_TYPE}")
+    print(f"📊 增强路由: {'✅ 启用' if False else '❌ 禁用'}")
+    print(f"🌐 IP隔离: {'✅ 启用' if AppConfig.ENABLE_IP_ISOLATION else '❌ 禁用'}")
+    print(f"💾 记忆存储: {AppConfig.MEMORY_STORAGE_TYPE}")
     print("-" * 50)
     
     uvicorn.run(app, host="0.0.0.0", port=8000)

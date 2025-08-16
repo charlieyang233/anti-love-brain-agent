@@ -34,16 +34,7 @@
                     </div>
                 </div>
 
-                <!-- 海王对战得分指示器 -->
-                <div class="seaking-score-indicator seaking-score-hidden" id="seakingScoreIndicator">
-                    <div class="seaking-score-compact">
-                        <span class="seaking-score-icon">🏆</span>
-                        <span class="seaking-score-text">得分: <span id="seakingScoreValue">0</span></span>
-                        <div class="seaking-score-bar">
-                            <div class="seaking-score-fill" id="seakingScoreFill" style="width: 0%"></div>
-                        </div>
-                    </div>
-                </div>
+
 
                 <!-- 记忆状态指示器 -->
                 <div class="memory-indicator" id="memoryIndicator" title="点击查看记忆详情">
@@ -71,11 +62,22 @@
         <!-- 底部输入区域 -->
         <div class="chat-input-container">
             <div class="persona-selector">
-                <span class="persona-label">模式:</span>
-                <div class="persona-option active" data-button-type="正常聊天">💬 正常聊天</div>
-                <div class="persona-option" data-button-type="🌊对战海王">🌊 对战海王</div>
-                <div class="persona-option" data-button-type="🍵反茶艺大师">🍵 反茶艺大师</div>
-                <div class="persona-option" data-button-type="🌈决战通讯录之巅">🌈 决战通讯录之巅</div>
+                <div class="persona-modes">
+                    <span class="persona-label">模式:</span>
+                    <div class="persona-option active" data-button-type="正常聊天">💬 正常聊天</div>
+                    <div class="persona-option" data-button-type="🌊对战海王">🌊 对战海王</div>
+                    <div class="persona-option" data-button-type="🍵反茶艺大师">🍵 反茶艺大师</div>
+                    <div class="persona-option" data-button-type="🌈决战通讯录之巅">🌈 决战通讯录之巅</div>
+                </div>
+                
+                <!-- 海王模式得分指示器 - 只在海王模式时显示，居右显示 -->
+                <div class="seaking-score-inline seaking-score-hidden" id="seakingScoreInline">
+                    <span class="seaking-score-icon">🏆</span>
+                    <span class="seaking-score-text">得分: <span id="seakingScoreValue">0</span></span>
+                    <div class="seaking-score-progress">
+                        <div class="seaking-score-fill" id="seakingScoreFill" style="width: 0%"></div>
+                    </div>
+                </div>
             </div>
             <div class="chat-input-wrapper">
                 <textarea 
@@ -98,7 +100,7 @@
         // 全局变量
         let currentButtonType = '正常聊天';
         let currentSeakingScore = 0;
-        let isFirstSeaking = true;
+
         let isTyping = false;
         let conversationHistory = [];
         let currentSeakingPersona = null; // 存储当前海王对战的人设信息
@@ -119,7 +121,7 @@
         const meterValue = document.getElementById('meterValue');
 
         // 海王对战得分相关元素
-        const seakingScoreIndicator = document.getElementById('seakingScoreIndicator');
+        const seakingScoreInline = document.getElementById('seakingScoreInline');
         const seakingScoreValue = document.getElementById('seakingScoreValue');
         const seakingScoreFill = document.getElementById('seakingScoreFill');
 
@@ -217,7 +219,6 @@
                     
                     if (shouldReset) {
                         currentSeakingScore = 0;
-                        isFirstSeaking = true;
                         
                         // 从本地JSON文件获取人设
                         try {
@@ -259,10 +260,12 @@
                         // 如果不需要重置，只显示当前模式信息
                         addSystemMessage(`继续${this.textContent}模式，当前海王：${currentSeakingPersona.persona}`);
                     }
+                    
+                    // 显示海王得分指示器
+                    updateSeakingScore(currentSeakingScore);
                 } else {
                     // 切换到正常聊天模式时，重置所有海王相关状态
                     currentSeakingScore = 0;
-                    isFirstSeaking = true;
                     addSystemMessage('已切换到正常聊天模式');
                     // 隐藏海王得分指示器
                     resetSeakingScore();
@@ -318,7 +321,6 @@
                 // 重置前端状态
                 conversationHistory = [];
                 currentSeakingScore = 0;
-                isFirstSeaking = true;
                 currentSeakingPersona = null; // 清除人设信息
                 chatMessages.innerHTML = `
                     <div class="message ai">
@@ -379,7 +381,6 @@
                         message: message,
                         button_type: currentButtonType,
                         seaking_score: currentSeakingScore,
-                        is_first_seaking: isFirstSeaking,
                         persona: currentSeakingPersona.persona,
                         gender: currentSeakingPersona.gender,
                         user_gender: currentSeakingPersona.user_gender,
@@ -401,7 +402,6 @@
                         message: message,
                         button_type: currentButtonType,
                         seaking_score: currentSeakingScore,
-                        is_first_seaking: isFirstSeaking,
                         history: conversationHistory
                     };
                     
@@ -437,7 +437,6 @@
                     // 更新海王对战状态
                     if (data.seaking_mode) {
                         currentSeakingScore = data.seaking_mode.current_score || 0;
-                        isFirstSeaking = data.seaking_mode.is_first_seaking || false;
                         
                         // 更新得分显示
                         updateSeakingScore(currentSeakingScore);
@@ -745,26 +744,31 @@
             }, 500);
         }
 
+        // 检查是否为海王模式
+        function isSeakingMode(buttonType) {
+            return buttonType !== '正常聊天';
+        }
+
         // 更新海王对战得分
         function updateSeakingScore(score) {
-            if (currentButtonType !== '正常聊天') {
-                seakingScoreIndicator.classList.remove('seaking-score-hidden');
+            if (isSeakingMode(currentButtonType)) {
+                seakingScoreInline.classList.remove('seaking-score-hidden');
                 seakingScoreValue.textContent = score;
                 seakingScoreFill.style.width = `${score}%`;
                 
                 // 添加动画效果
-                seakingScoreIndicator.style.animation = 'pulse 0.5s ease-in-out';
+                seakingScoreInline.style.animation = 'pulse 0.5s ease-in-out';
                 setTimeout(() => {
-                    seakingScoreIndicator.style.animation = '';
+                    seakingScoreInline.style.animation = '';
                 }, 500);
             } else {
-                seakingScoreIndicator.classList.add('seaking-score-hidden');
+                seakingScoreInline.classList.add('seaking-score-hidden');
             }
         }
 
         // 重置海王对战得分
         function resetSeakingScore() {
-            seakingScoreIndicator.classList.add('seaking-score-hidden');
+            seakingScoreInline.classList.add('seaking-score-hidden');
             seakingScoreFill.style.width = '0%';
             seakingScoreValue.textContent = '0';
         }
