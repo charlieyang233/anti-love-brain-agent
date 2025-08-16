@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Syber老李 - 你的AI反恋爱脑闺蜜/情感搭子Agent</title>
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
     <div class="chat-container">
@@ -233,7 +233,7 @@
                         
                         // 从本地JSON文件获取人设
                         try {
-                            const personasResponse = await fetch(`/static/personas.json?v=${Date.now()}`);
+                            const personasResponse = await fetch(`/seaking/personas?v=${Date.now()}`);
                             if (personasResponse.ok) {
                                 const personasData = await personasResponse.json();
                                 console.log('[DEBUG] 获取到的personas数据:', Object.keys(personasData));
@@ -393,7 +393,7 @@
         // 返回主页
         returnHomeButton.addEventListener('click', function() {
             // 直接跳转，无需加载提示
-            window.location.href = 'index_modern.html';
+            window.location.href = '/';
         });
 
         async function sendMessage() {
