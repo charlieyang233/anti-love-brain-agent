@@ -100,7 +100,7 @@ body {
 /* 旧的海王对战得分指示器样式已移除 - 现在使用内联样式 */
 
 .seaking-score-hidden {
-    display: none;
+    display: none !important;
 }
 
 /* 海王模式内联得分指示器 - 模仿模式按钮样式但有透明度区别 */
@@ -483,13 +483,7 @@ body {
     color: white;
 }
 
-.message.system .message-avatar {
-    width: 32px;
-    height: 32px;
-    font-size: 12px;
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-    color: white;
-}
+/* 系统消息不使用头像，此样式已移除 */
 
 .message-content {
     padding: 16px 20px;
@@ -515,12 +509,21 @@ body {
     box-shadow: 0 4px 12px rgba(139, 92, 246, 0.1);
 }
 
+.message.system {
+    align-self: center;  /* 整个系统消息居中 */
+    width: 100%;         /* 占满宽度以便内容居中 */
+}
+
 .message.system .message-content {
     background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
     color: #6366f1;
     border: 1px solid rgba(99, 102, 241, 0.2);
-    font-size: 12px;
-    padding: 8px 12px;
+    font-size: 13px;
+    padding: 10px 16px;
+    text-align: center;   /* 文字居中 */
+    margin: 0 auto;       /* 内容块居中 */
+    max-width: 80%;       /* 限制最大宽度，避免过宽 */
+    border-radius: 16px;  /* 更圆润的边角 */
 }
 
 /* 打字机效果 */
@@ -667,6 +670,13 @@ body {
     border-color: #f59e0b;
 }
 
+.persona-option[data-button-type="💃姬圈擂台赛"]:hover {
+    background: linear-gradient(135deg, #f427d2 0%, #c910ab 100%);
+    color: white;
+    border-color: #f427d2;
+}
+
+
 .persona-option[data-button-type="🌊对战海王"].active {
     background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
     border-color: #3b82f6;
@@ -680,6 +690,11 @@ body {
 .persona-option[data-button-type="🌈决战通讯录之巅"].active {
     background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
     border-color: #f59e0b;
+}
+
+.persona-option[data-button-type="💃姬圈擂台赛"].active {
+    background: linear-gradient(135deg, #f427d2 0%, #c910ab 100%);
+    border-color: #f427d2;
 }
 
 .chat-input-wrapper {

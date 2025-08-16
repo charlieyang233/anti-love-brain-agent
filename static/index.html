@@ -266,7 +266,6 @@
                 } else {
                     // 切换到正常聊天模式时，重置所有海王相关状态
                     currentSeakingScore = 0;
-                    addSystemMessage('已切换到正常聊天模式');
                     // 隐藏海王得分指示器
                     resetSeakingScore();
                     // 清除对话历史，避免显示海王对战内容
@@ -284,9 +283,22 @@
                             console.log('服务器记忆重置成功');
                             // 清除前端对话历史
                             chatMessages.innerHTML = '';
+                            
+                            // 在清空后添加切换到正常聊天的系统消息
+                            addSystemMessage('已进入💬正常聊天模式，继续和老李唠嗑吧！');
+                            
+                            // 添加拽姐的欢迎消息
+                            setTimeout(() => {
+                                addMessage('🚬玩完回来啦？继续想聊点啥呀铁子', 'ai');
+                            }, 500);
                         }
                     } catch (error) {
                         console.error('重置记忆失败:', error);
+                        // 即使重置失败也显示切换消息
+                        addSystemMessage('已进入💬正常聊天模式，继续和老李唠嗑吧！');
+                        setTimeout(() => {
+                            addMessage('🚬玩完回来啦？继续想聊点啥呀铁子', 'ai');
+                        }, 500);
                     }
                 }
             });
@@ -435,10 +447,10 @@
                     }
                     
                     // 更新海王对战状态
-                    if (data.seaking_mode) {
+                    if (data.seaking_mode && isSeakingMode(currentButtonType)) {
                         currentSeakingScore = data.seaking_mode.current_score || 0;
                         
-                        // 更新得分显示
+                        // 更新得分显示（只在海王模式下）
                         updateSeakingScore(currentSeakingScore);
                         
                         // 检查是否通关
@@ -650,15 +662,11 @@
             const messageDiv = document.createElement('div');
             messageDiv.className = 'message system';
             
-            const avatar = document.createElement('div');
-            avatar.className = 'message-avatar';
-            avatar.textContent = '系';
-            
             const messageContent = document.createElement('div');
             messageContent.className = 'message-content';
             messageContent.textContent = content;
             
-            messageDiv.appendChild(avatar);
+            // 系统消息不需要头像，直接添加内容
             messageDiv.appendChild(messageContent);
             chatMessages.appendChild(messageDiv);
             
@@ -751,8 +759,16 @@
 
         // 更新海王对战得分
         function updateSeakingScore(score) {
+            console.log('[DEBUG] updateSeakingScore 被调用');
+            console.log('[DEBUG] currentButtonType:', currentButtonType);
+            console.log('[DEBUG] isSeakingMode结果:', isSeakingMode(currentButtonType));
+            console.log('[DEBUG] score:', score);
+            
             if (isSeakingMode(currentButtonType)) {
+                console.log('[DEBUG] 显示得分指示器');
                 seakingScoreInline.classList.remove('seaking-score-hidden');
+                // 清除内联隐藏样式，让CSS类生效
+                seakingScoreInline.style.display = '';
                 seakingScoreValue.textContent = score;
                 seakingScoreFill.style.width = `${score}%`;
                 
@@ -762,15 +778,22 @@
                     seakingScoreInline.style.animation = '';
                 }, 500);
             } else {
+                console.log('[DEBUG] 隐藏得分指示器');
                 seakingScoreInline.classList.add('seaking-score-hidden');
+                // 强制隐藏：同时使用CSS类和内联样式
+                seakingScoreInline.style.display = 'none';
             }
         }
 
         // 重置海王对战得分
         function resetSeakingScore() {
+            console.log('[DEBUG] resetSeakingScore 被调用');
             seakingScoreInline.classList.add('seaking-score-hidden');
+            // 强制隐藏：同时使用CSS类和内联样式
+            seakingScoreInline.style.display = 'none';
             seakingScoreFill.style.width = '0%';
             seakingScoreValue.textContent = '0';
+            console.log('[DEBUG] 得分指示器已隐藏（双重保险）');
         }
 
         // 重置恋爱脑指数
@@ -1127,6 +1150,34 @@
             memoryUsage.className = 'memory-usage low';
             memoryIndicator.title = '记忆已重置';
         }
+
+        // 页面初始化：确保得分指示器在正常聊天模式下被隐藏
+        function initializeUI() {
+            console.log('[DEBUG] 初始化UI状态');
+            console.log('[DEBUG] currentButtonType:', currentButtonType);
+            console.log('[DEBUG] isSeakingMode结果:', isSeakingMode(currentButtonType));
+            
+            // 确保得分指示器根据当前模式正确显示/隐藏
+            if (currentButtonType === '正常聊天') {
+                console.log('[DEBUG] 正常聊天模式，隐藏得分指示器');
+                resetSeakingScore();
+                
+                // 调试：检查元素的实际样式
+                setTimeout(() => {
+                    const computedStyle = window.getComputedStyle(seakingScoreInline);
+                    console.log('[DEBUG] 元素CSS类:', seakingScoreInline.className);
+                    console.log('[DEBUG] 内联样式display:', seakingScoreInline.style.display);
+                    console.log('[DEBUG] 计算后的display:', computedStyle.display);
+                    console.log('[DEBUG] 元素是否可见:', seakingScoreInline.offsetWidth > 0 && seakingScoreInline.offsetHeight > 0);
+                }, 100);
+            } else {
+                console.log('[DEBUG] 海王模式，显示得分指示器');
+                updateSeakingScore(currentSeakingScore);
+            }
+        }
+
+        // 页面加载完成后初始化UI状态
+        initializeUI();
     </script>
 </body>
 </html>
