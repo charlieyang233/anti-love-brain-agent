@@ -68,6 +68,7 @@
                     <div class="persona-option" data-button-type="🌊对战海王">🌊 对战海王</div>
                     <div class="persona-option" data-button-type="🍵反茶艺大师">🍵 反茶艺大师</div>
                     <div class="persona-option" data-button-type="🌈决战通讯录之巅">🌈 决战通讯录之巅</div>
+                    <div class="persona-option" data-button-type="💃姬圈擂台赛">💃 姬圈擂台赛</div>
                 </div>
                 
                 <!-- 海王模式得分指示器 - 只在海王模式时显示，居右显示 -->
@@ -104,6 +105,7 @@
         let isTyping = false;
         let conversationHistory = [];
         let currentSeakingPersona = null; // 存储当前海王对战的人设信息
+        let hasTriggeredFirstRound = false; // 防止重复触发第一轮对话
 
         // DOM 元素
         const chatMessages = document.getElementById('chatMessages');
@@ -145,7 +147,7 @@
         // 欢迎消息打字机效果
         function typeWelcomeMessage() {
             const messages = [
-                "😈 耶斯——莫拉！集美好久不见啊！\n\n姐是你的毒舌铁子'老李'💜！有啥情感困扰尽管来吐槽！你要想练练反PUA，也可以试试海王模拟模式，姐跟你演演~"
+                "😈 耶斯莫拉！集美好久不见啊！\n\n姐是你的毒舌铁子老李💜！有啥情感困扰尽管来吐槽！你也可以试试切换🎮海王对战模式，姐帮你练反套路!"
             ];
             
             let messageIndex = 0;
@@ -195,11 +197,8 @@
 
         // 获取模式显示文本（带emoji）
         function getPersonaDisplayText(text, buttonType) {
-            if (buttonType === '正常聊天') {
-                return '💬 ' + text;
-            } else {
-                return '🌊 ' + text;
-            }
+            // 直接返回按钮文本，因为按钮文本已经包含了对应的icon
+            return text;
         }
 
         // 模式切换
@@ -219,13 +218,17 @@
                     
                     if (shouldReset) {
                         currentSeakingScore = 0;
+                        hasTriggeredFirstRound = false; // 重置第一轮触发标记
                         
                         // 从本地JSON文件获取人设
                         try {
-                            const personasResponse = await fetch('/static/personas.json');
+                            const personasResponse = await fetch(`/static/personas.json?v=${Date.now()}`);
                             if (personasResponse.ok) {
                                 const personasData = await personasResponse.json();
+                                console.log('[DEBUG] 获取到的personas数据:', Object.keys(personasData));
+                                console.log('[DEBUG] 当前按钮类型:', currentButtonType);
                                 const config = personasData[currentButtonType];
+                                console.log('[DEBUG] 找到的配置:', config);
                                 if (config && config.personas) {
                                     // 随机选择一个人设
                                     const randomPersona = config.personas[Math.floor(Math.random() * config.personas.length)];
@@ -235,16 +238,19 @@
                                         gender: randomPersona.gender,
                                         user_gender: randomPersona.user_gender,
                                         challenge_type: randomPersona.challenge_type,
-                                        first_greeting: randomPersona.first_greeting
+                                        first_greeting: randomPersona.first_greeting,
+                                        description: randomPersona.description,
+                                        style: randomPersona.style,
+                                        weakness: randomPersona.weakness
                                     };
                                     console.log('获取新人设:', currentSeakingPersona);
                                     
                                     // 显示人设说明
                                     addSystemMessage(`已切换进入${this.textContent}模式，目标是回复得分达100！本次挑战海王：${randomPersona.name}`);
                                     
-                                    // 显示海王首句招呼
-                                    setTimeout(() => {
-                                        addMessage(`【海王】：${randomPersona.first_greeting}`, 'ai');
+                                    // 自动触发第一轮对话，获取挑战目标和海王开场白
+                                    setTimeout(async () => {
+                                        await triggerFirstSeakingRound();
                                     }, 500);
                                 } else {
                                     addSystemMessage(`已切换到 ${this.textContent} 模式，准备开始海王对战！`);
@@ -266,6 +272,7 @@
                 } else {
                     // 切换到正常聊天模式时，重置所有海王相关状态
                     currentSeakingScore = 0;
+                    hasTriggeredFirstRound = false; // 重置第一轮触发标记
                     // 隐藏海王得分指示器
                     resetSeakingScore();
                     // 清除对话历史，避免显示海王对战内容
@@ -334,6 +341,7 @@
                 conversationHistory = [];
                 currentSeakingScore = 0;
                 currentSeakingPersona = null; // 清除人设信息
+                hasTriggeredFirstRound = false; // 重置第一轮触发标记
                 chatMessages.innerHTML = `
                     <div class="message ai">
                         <div class="message-avatar">拽</div>
@@ -396,7 +404,10 @@
                         persona: currentSeakingPersona.persona,
                         gender: currentSeakingPersona.gender,
                         user_gender: currentSeakingPersona.user_gender,
-                        challenge_type: currentSeakingPersona.challenge_type
+                        challenge_type: currentSeakingPersona.challenge_type,
+                        description: currentSeakingPersona.description,
+                        style: currentSeakingPersona.style,
+                        weakness: currentSeakingPersona.weakness
                     };
                     
                     console.log('海王对战请求参数:', seakingRequestBody);
@@ -448,7 +459,13 @@
                     
                     // 更新海王对战状态
                     if (data.seaking_mode && isSeakingMode(currentButtonType)) {
-                        currentSeakingScore = data.seaking_mode.current_score || 0;
+                        const newScore = data.seaking_mode.current_score || 0;
+                        console.log('[DEBUG] 海王得分更新:', {
+                            oldScore: currentSeakingScore,
+                            newScore: newScore,
+                            seakingMode: data.seaking_mode
+                        });
+                        currentSeakingScore = newScore;
                         
                         // 更新得分显示（只在海王模式下）
                         updateSeakingScore(currentSeakingScore);
@@ -578,10 +595,17 @@
             const seakingMatch = content.match(/【海王】([^【]*)/);
             if (seakingMatch) {
                 let seakingText = seakingMatch[1].trim();
-                // 清理格式
+                // 清理格式 - 去掉人设名称前缀
                 seakingText = seakingText.replace(/^[：""\s]+/, '');
                 seakingText = seakingText.replace(/[""]\s*$/, '');
                 seakingText = seakingText.replace(/\s*（[^）]*）.*$/, '');
+                
+                // 去掉人设名称前缀（如"INFP-治愈文青型海王："）
+                if (seakingText.includes('：')) {
+                    const colonIndex = seakingText.indexOf('：');
+                    seakingText = seakingText.substring(colonIndex + 1).trim();
+                }
+                
                 seakingText = seakingText.replace(/\s+/g, ' ').trim();
                 
                 console.log('解析到海王回复:', seakingText);
@@ -678,7 +702,12 @@
             sendButton.disabled = true;
             
             const typingDiv = document.createElement('div');
-            typingDiv.className = 'message ai';
+            // 根据当前模式设置不同的类名和头像样式
+            if (currentButtonType !== '正常聊天') {
+                typingDiv.className = 'message seaking';
+            } else {
+                typingDiv.className = 'message ai';
+            }
             typingDiv.id = 'typing-indicator';
             
             const avatar = document.createElement('div');
@@ -1173,6 +1202,34 @@
             } else {
                 console.log('[DEBUG] 海王模式，显示得分指示器');
                 updateSeakingScore(currentSeakingScore);
+            }
+        }
+
+        // 自动触发第一轮海王对战
+        async function triggerFirstSeakingRound() {
+            if (currentButtonType === '正常聊天' || !currentSeakingPersona || hasTriggeredFirstRound) {
+                return;
+            }
+            
+            // 标记已触发，防止重复
+            hasTriggeredFirstRound = true;
+            
+            try {
+                console.log('[DEBUG] 触发第一轮海王对战');
+                
+                // 直接显示挑战目标和海王开场白，不发送请求到后端
+                if (currentSeakingPersona.challenge_goal) {
+                    addSystemMessage(currentSeakingPersona.challenge_goal);
+                }
+                
+                if (currentSeakingPersona.first_greeting) {
+                    // 海王开场白应该显示为海王头像（红色）
+                    addMessage(currentSeakingPersona.first_greeting, 'seaking');
+                }
+                
+                console.log('[DEBUG] 第一轮海王对战内容已显示');
+            } catch (error) {
+                console.error('第一轮海王对战触发失败:', error);
             }
         }
 

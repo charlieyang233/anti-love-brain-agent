@@ -47,6 +47,9 @@ def get_user_identifier(request: Request) -> str:
 # 用户记忆管理器 - 简化为直接使用Agent架构
 user_memory_managers: Dict[str, Any] = {}
 
+# 海王对战历史管理 - 只保存上一轮对话
+seaking_last_conversations: Dict[str, str] = {}
+
 class ChatRequest(BaseModel):
     message: str
     persona: str = ""
@@ -59,6 +62,9 @@ class ChatRequest(BaseModel):
     gender: Optional[str] = None  # 海王性别
     user_gender: Optional[str] = None  # 用户性别
     challenge_type: Optional[str] = None  # 挑战类型
+    description: Optional[str] = None  # 人设描述
+    style: Optional[str] = None  # 人设风格
+    weakness: Optional[str] = None  # 人设弱点
 
 def get_memory_manager(user_ip: str):
     """获取用户的记忆管理器和Agent"""
@@ -88,7 +94,10 @@ def generate_seaking_persona(button_type: str) -> Dict[str, Any]:
             "persona": "ENTJ-高阶PUA",
             "gender": "男",
             "user_gender": "女",
-            "challenge_type": "海王对战"
+            "challenge_type": "海王对战",
+            "description": "以刺激、新鲜感制造情绪过山车，擅长用“临时计划+高频邀约”建立优势地位，习惯在临界亲密前切换目标。",
+            "style": "夜生活达人、运动控、擅长即兴决策与肢体语言",
+            "weakness": "耐心差、厌倦快，深度关系维护能力低"
         }
     
     config = personas_data[button_type]
@@ -98,7 +107,10 @@ def generate_seaking_persona(button_type: str) -> Dict[str, Any]:
             "persona": selected_persona.get("name", "ENTJ-高阶PUA"),
             "gender": selected_persona.get("gender", "男"),
             "user_gender": selected_persona.get("user_gender", "女"),
-            "challenge_type": selected_persona.get("challenge_type", "海王对战")
+            "challenge_type": selected_persona.get("challenge_type", "海王对战"),
+            "description": selected_persona.get("description", "以刺激、新鲜感制造情绪过山车，擅长用“临时计划+高频邀约”建立优势地位，习惯在临界亲密前切换目标。"),
+            "style": selected_persona.get("style", "夜生活达人、运动控、擅长即兴决策与肢体语言"),
+            "weakness": selected_persona.get("weakness", "耐心差、厌倦快，深度关系维护能力低")
         }
     
     # 降级处理
@@ -106,40 +118,49 @@ def generate_seaking_persona(button_type: str) -> Dict[str, Any]:
         "persona": "ENTJ-高阶PUA",
         "gender": "男",
         "user_gender": "女",
-        "challenge_type": "海王对战"
+        "challenge_type": "海王对战",
+        "description": "以刺激、新鲜感制造情绪过山车，擅长用“临时计划+高频邀约”建立优势地位，习惯在临界亲密前切换目标。",
+        "style": "夜生活达人、运动控、擅长即兴决策与肢体语言",
+        "weakness": "耐心差、厌倦快，深度关系维护能力低"
     }
 
-def parse_seaking_score(ai_response: str, prev_score: int) -> tuple[int, bool]:
+def parse_seaking_score(ai_response: str, prev_score: int, is_first_round: bool = False) -> tuple[int, bool]:
     """从AI回复中解析得分和胜利状态"""
     try:
-        # 查找拽姐旁白中的得分信息
+        print(f"[DEBUG] 解析得分 - AI回复: {ai_response[:200]}...")
+        print(f"[DEBUG] 解析得分 - 上轮得分: {prev_score}")
         
-        # 匹配"当前得分：X分"或"得分：X分"的模式
+        # 检查是否通关
+        if "🎉恭喜挑战成功" in ai_response or "恭喜通关" in ai_response:
+            print(f"[DEBUG] 检测到通关信息")
+            return 100, True
+        
+        # 检查是否是第一轮对话（基于对话历史判断）
+        if is_first_round:
+            print(f"[DEBUG] 检测到第一轮对话，保持得分为0")
+            return 0, False
+        
+        # 更精确的得分匹配模式 - 专门匹配拽姐旁白中的得分
         score_patterns = [
-            r'当前得分[：:]\s*(\d+)分',
-            r'得分[：:]\s*(\d+)分',
-            r'(\d+)分'
+            r'【拽姐旁白】.*?当前得分[：:]\s*(\d+)',  # 匹配拽姐旁白中的当前得分
+            r'当前得分[：:]\s*(\d+)',  # 匹配当前得分
+            r'得分[：:]\s*(\d+)'  # 匹配得分
         ]
         
         for pattern in score_patterns:
             match = re.search(pattern, ai_response)
             if match:
                 score = int(match.group(1))
+                print(f"[DEBUG] 成功解析得分: {score} (使用模式: {pattern})")
                 return score, score >= 100
         
-        # 检查是否包含"恭喜通关"
-        if "恭喜通关" in ai_response or "通关" in ai_response:
-            return 100, True
-        
-        # 如果没有找到得分，根据回复质量估算
-        if "拽姐旁白" in ai_response:
-            # 简单估算：如果回复质量好，给10分
-            return prev_score + 10, (prev_score + 10) >= 100
-        
+        # 如果没有找到明确的得分，保持原得分不变
+        print(f"[DEBUG] 未找到得分信息，保持原得分: {prev_score}")
         return prev_score, prev_score >= 100
         
     except Exception as e:
         print(f"[Error] Parse seaking score failed: {e}")
+        print(f"[DEBUG] 异常情况，返回原得分: {prev_score}")
         return prev_score, prev_score >= 100
 
 @app.get("/")
@@ -179,36 +200,78 @@ async def handle_seaking_mode(request: ChatRequest, memory_manager, user_ip: str
     print(f"请求参数: button_type={request.button_type}, persona={request.persona}")
     try:
         # 使用前端传递的人设信息，如果没有则生成新的
-        if request.persona and request.gender and request.user_gender and request.challenge_type:
+        if request.persona and request.gender and request.user_gender and request.challenge_type and request.description and request.style and request.weakness:
+            # 前端已传递完整人设信息，直接使用
             persona_config = {
                 "persona": request.persona,
                 "gender": request.gender,
                 "user_gender": request.user_gender,
-                "challenge_type": request.challenge_type
+                "challenge_type": request.challenge_type,
+                "description": request.description,
+                "style": request.style,
+                "weakness": request.weakness
             }
+            print(f"[DEBUG] 使用前端传递的人设: {request.persona}")
         else:
-            # 生成海王人设
+            # 生成海王人设（通常只在第一次切换模式时发生）
             persona_config = generate_seaking_persona(request.button_type)
+            print(f"[DEBUG] 生成新的随机人设: {persona_config['persona']}")
         
         # 使用新的SeakingChain
         from src.tools.seaking import SeakingChain
         seaking_chain = SeakingChain()
+        
+        # 获取上一轮对话
+        last_conversation = seaking_last_conversations.get(user_ip, "（这是第一轮对话）")
+        is_first_round = last_conversation == "（这是第一轮对话）"
         
         # 直接调用SeakingChain
         ai_response = seaking_chain.run(
             persona=persona_config["persona"],
             user_input=request.message,
             current_score=request.seaking_score,
-            challenge_type=persona_config["challenge_type"]
+            challenge_type=persona_config["challenge_type"],
+            # 传入海王性别、用户性别
+            gender=persona_config["gender"],
+            user_gender=persona_config["user_gender"],
+            description=persona_config["description"],
+            style=persona_config["style"],
+            weakness=persona_config["weakness"],
+            last_conversation=last_conversation
         )
         
         # 从AI回复中解析得分和胜利状态
-        new_score, is_victory = parse_seaking_score(ai_response, request.seaking_score)
+        new_score, is_victory = parse_seaking_score(ai_response, request.seaking_score, is_first_round)
+        print(f"[DEBUG] 海王得分处理结果: 原得分={request.seaking_score}, 新得分={new_score}, 是否通关={is_victory}")
         
         # 检查是否通关
         if "🎉恭喜挑战成功" in ai_response:
             is_victory = True
             new_score = 100
+            print(f"[DEBUG] 检测到通关消息，强制设置得分为100")
+            # 通关后清除对话历史
+            seaking_last_conversations.pop(user_ip, None)
+        else:
+            # 保存当前完整对话作为下一轮的参考
+            # 格式：海王：xxx\n用户：xxx（这样下一轮拽姐可以对用户这轮的回复进行打分）
+            
+            # 提取海王的回复（在【海王】和【拽姐旁白】之间的内容）
+            seaking_reply = ""
+            if "【海王】" in ai_response:
+                # 提取海王回复部分
+                seaking_part = ai_response.split("【海王】")[1]
+                if "【拽姐旁白】" in seaking_part:
+                    seaking_reply = seaking_part.split("【拽姐旁白】")[0].strip()
+                else:
+                    seaking_reply = seaking_part.strip()
+                # 清理格式，移除人设名称前缀
+                if "：" in seaking_reply:
+                    seaking_reply = seaking_reply.split("：", 1)[1].strip()
+            
+            # 保存格式：海王回复 + 用户回复
+            conversation_record = f"海王：{seaking_reply}\n用户：{request.message}"
+            seaking_last_conversations[user_ip] = conversation_record
+            print(f"[DEBUG] 保存对话历史: {conversation_record}")
         
         # 海王对战模式不更新全局记忆，避免影响正常聊天
         
@@ -365,6 +428,9 @@ async def reset_chat(req: Request):
         
         # 重置记忆
         memory_manager.clear_session()
+        
+        # 清除海王对战历史
+        seaking_last_conversations.pop(user_ip, None)
         
         # 重新创建Agent (确保使用新的记忆状态)
         agent = build_agent(memory_manager)
