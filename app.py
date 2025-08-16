@@ -166,7 +166,7 @@ def parse_seaking_score(ai_response: str, prev_score: int, is_first_round: bool 
 @app.get("/")
 async def read_index():
     """主页面"""
-    response = FileResponse('static/index.html')
+    response = FileResponse('static/index_modern.html')
     if AppConfig.IS_DEVELOPMENT:
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
         response.headers["Pragma"] = "no-cache"

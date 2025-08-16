@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI老李 - 你的反恋爱脑赛博闺蜜搭子 Agent</title>
+    <title>Syber老李 - 你的AI反恋爱脑闺蜜/情感搭子Agent</title>
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/styles.css">
@@ -14,10 +14,10 @@
         <div class="chat-header">
             <div class="header-left">
                 <div class="chat-title">
-                    AI老李 💜
+                    Syber老李 💜
                     <span id="personaDisplay" class="persona-status">💬 正常聊天</span>
                 </div>
-                <div class="chat-subtitle">你的赛博反恋爱脑闺蜜搭子 - 毒舌/八卦/吐槽/恋爱顾问</div>
+                <div class="chat-subtitle">AI反恋爱脑闺蜜 - 你的吐槽/毒舌/八卦/情感搭子</div>
             </div>
             
             <div class="header-right">
@@ -84,7 +84,7 @@
                 <textarea 
                     id="chatInput" 
                     class="chat-input" 
-                    placeholder="跟拽姐说说你的困扰吧..."
+                    placeholder="来，跟老李说说你的困扰吧..."
                     rows="1"
                 ></textarea>
                 <button id="sendButton" class="send-button">
@@ -147,7 +147,7 @@
         // 欢迎消息打字机效果
         function typeWelcomeMessage() {
             const messages = [
-                "😈 耶斯莫拉！集美好久不见啊！\n\n姐是你的毒舌铁子老李💜！有啥情感困扰尽管来吐槽！你也可以试试切换🎮海王对战模式，姐帮你练反套路!"
+                "😈 耶斯莫拉！集美好久不见啊！——姐是你的赛博铁子老李💜！有啥情感困扰尽管来吐槽！也可以试试🎮对战海王模式，学学咋反恋爱套路！"
             ];
             
             let messageIndex = 0;
