@@ -567,11 +567,8 @@ async def get_seaking_personas():
         with open(personas_file, 'r', encoding='utf-8') as f:
             personas_data = json.load(f)
         
-        return {
-            "personas": personas_data,
-            "button_types": AppConfig.SEAKING_MODES,
-            "success": True
-        }
+        # 直接返回人设数据，保持与前端期望的结构一致
+        return personas_data
     except Exception as e:
         print(f"[Error] Get seaking personas failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
