@@ -173,6 +173,16 @@ async def read_index():
         response.headers["Expires"] = "0"
     return response
 
+@app.get("/chat")
+async def read_chat():
+    """聊天页面"""
+    response = FileResponse('static/chat.html')
+    if AppConfig.IS_DEVELOPMENT:
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
+
 @app.post("/chat")
 async def chat(request: ChatRequest, req: Request):
     """聊天端点 - 支持直接海王对战和正常Agent模式"""
