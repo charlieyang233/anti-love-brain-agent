@@ -576,6 +576,11 @@ async def get_seaking_personas():
         print(f"[Error] Get seaking personas failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/health")
+async def health_check():
+    """健康检查端点 - Railway部署需要"""
+    return {"status": "healthy", "service": "anti-love-brain-agent"}
+
 @app.get("/favicon.ico")
 async def favicon():
     return FileResponse('static/favicon.svg')
