@@ -579,4 +579,5 @@ if __name__ == "__main__":
     print(f"💾 记忆存储: {AppConfig.MEMORY_STORAGE_TYPE}")
     print("-" * 50)
     
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
