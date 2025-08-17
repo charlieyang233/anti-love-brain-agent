@@ -33,16 +33,27 @@ AppConfig.print_startup_info()
 
 def get_user_identifier(request: Request) -> str:
     """统一的用户标识获取函数"""
+    print(f"[DEBUG] ===== 用户标识获取 =====")
+    print(f"[DEBUG] ENABLE_IP_ISOLATION: {AppConfig.ENABLE_IP_ISOLATION}")
+    print(f"[DEBUG] IS_DEVELOPMENT: {AppConfig.IS_DEVELOPMENT}")
+    print(f"[DEBUG] RAILWAY_ENVIRONMENT: {os.getenv('RAILWAY_ENVIRONMENT')}")
+    print(f"[DEBUG] PORT: {os.getenv('PORT')}")
+    
     if not AppConfig.ENABLE_IP_ISOLATION:
+        print(f"[DEBUG] IP隔离禁用，使用default_user")
         return "default_user"
     
     # 在开发环境中，可以使用固定标识符以便调试
     if AppConfig.IS_DEVELOPMENT:
         # 开发环境下为了方便调试，使用固定用户标识
+        print(f"[DEBUG] 开发环境，使用dev_user")
         return "dev_user"
     
     # 生产环境使用真实IP
-    return request.client.host
+    user_ip = request.client.host
+    print(f"[DEBUG] 生产环境，使用真实IP: {user_ip}")
+    print(f"[DEBUG] ===== 用户标识获取完成 =====")
+    return user_ip
 
 # 用户记忆管理器 - 简化为直接使用Agent架构
 user_memory_managers: Dict[str, Any] = {}
@@ -287,8 +298,13 @@ async def handle_seaking_mode(request: ChatRequest, memory_manager, user_ip: str
             # 保存格式：海王回复 + 用户回复
             conversation_record = f"海王：{seaking_reply}\n用户：{request.message}"
             seaking_last_conversations[user_ip] = conversation_record
-            print(f"[DEBUG] 保存对话历史: {conversation_record}")
-            print(f"[DEBUG] 保存本轮对话历史供下轮使用")
+            print(f"[DEBUG] ===== 对话历史保存详情 =====")
+            print(f"[DEBUG] 用户IP: {user_ip}")
+            print(f"[DEBUG] 海王回复: \"{seaking_reply}\"")
+            print(f"[DEBUG] 用户消息: \"{request.message}\"")
+            print(f"[DEBUG] 完整对话记录: \"{conversation_record}\"")
+            print(f"[DEBUG] 保存后的seaking_last_conversations: {dict(seaking_last_conversations)}")
+            print(f"[DEBUG] ===== 对话历史保存完成 =====")
         
         # 海王对战模式不更新全局记忆，避免影响正常聊天
         
