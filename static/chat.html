@@ -424,8 +424,8 @@
                         challenge_type: currentSeakingPersona.challenge_type,
                         description: currentSeakingPersona.description,
                         style: currentSeakingPersona.style,
-                        weakness: currentSeakingPersona.weakness,
-                        history: conversationHistory  // 添加对话历史传递
+                        weakness: currentSeakingPersona.weakness
+                        // 海王模式不传递全局conversationHistory，使用后端独立的seaking_last_conversations
                     };
                     
                     console.log('海王对战请求参数:', seakingRequestBody);

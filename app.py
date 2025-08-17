@@ -231,30 +231,10 @@ async def handle_seaking_mode(request: ChatRequest, memory_manager, user_ip: str
         from src.tools.seaking import SeakingChain
         seaking_chain = SeakingChain()
         
-        # 获取上一轮对话 - 优先使用前端传递的对话历史
-        last_conversation = "（这是第一轮对话）"
-        if request.history and len(request.history) >= 2:
-            # 从前端对话历史构建上一轮对话
-            # 格式：海王：xxx\n用户：xxx
-            try:
-                # 获取最近一轮对话（倒数第二个是AI回复，最后一个是用户输入）
-                recent_history = request.history[-2:]  # 最近的一轮对话
-                if len(recent_history) == 2:
-                    ai_msg = recent_history[0].get('content', '') if recent_history[0].get('role') == 'assistant' else ''
-                    user_msg = recent_history[1].get('content', '') if recent_history[1].get('role') == 'user' else ''
-                    if ai_msg and user_msg:
-                        last_conversation = f"海王：{ai_msg}\n用户：{user_msg}"
-                        print(f"[DEBUG] 使用前端对话历史构建: {last_conversation}")
-            except Exception as e:
-                print(f"[DEBUG] 解析前端对话历史失败: {e}")
-                # 回退到服务器端历史
-                last_conversation = seaking_last_conversations.get(user_ip, "（这是第一轮对话）")
-        else:
-            # 回退到服务器端历史
-            last_conversation = seaking_last_conversations.get(user_ip, "（这是第一轮对话）")
-        
+        # 获取上一轮对话 - 使用后端独立维护的海王对话历史
+        last_conversation = seaking_last_conversations.get(user_ip, "（这是第一轮对话）")
         is_first_round = last_conversation == "（这是第一轮对话）"
-        print(f"[DEBUG] 最终使用的上一轮对话: {last_conversation}")
+        print(f"[DEBUG] 海王模式上一轮对话: {last_conversation}")
         print(f"[DEBUG] 是否第一轮: {is_first_round}")
         
         # 直接调用SeakingChain
