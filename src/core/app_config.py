@@ -16,6 +16,9 @@ class AppConfig:
     MEMORY_STORAGE_TYPE = os.getenv("MEMORY_STORAGE_TYPE", "memory")
     ENABLE_IP_ISOLATION = os.getenv("ENABLE_IP_ISOLATION", "true").lower() == "true"
     
+    # Session配置
+    SESSION_TTL_DAYS = int(os.getenv("SESSION_TTL_DAYS", "7"))  # Session过期天数
+    
     # 环境检测
     IS_DEVELOPMENT = os.getenv("RAILWAY_ENVIRONMENT") is None and os.getenv("PORT") is None
     

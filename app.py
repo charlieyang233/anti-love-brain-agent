@@ -32,46 +32,53 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 AppConfig.print_startup_info()
 
 def get_user_identifier(request: Request) -> str:
-    """统一的用户标识获取函数"""
+    """基于session_id的用户标识获取函数"""
     print(f"[DEBUG] ===== 用户标识获取 =====")
-    print(f"[DEBUG] ENABLE_IP_ISOLATION: {AppConfig.ENABLE_IP_ISOLATION}")
-    print(f"[DEBUG] IS_DEVELOPMENT: {AppConfig.IS_DEVELOPMENT}")
-    print(f"[DEBUG] RAILWAY_ENVIRONMENT: {os.getenv('RAILWAY_ENVIRONMENT')}")
-    print(f"[DEBUG] PORT: {os.getenv('PORT')}")
     
-    if not AppConfig.ENABLE_IP_ISOLATION:
-        print(f"[DEBUG] IP隔离禁用，使用default_user")
-        return "default_user"
+    # 检查是否有session_id cookie
+    session_id = request.cookies.get("sid")
     
-    # 在开发环境中，可以使用固定标识符以便调试
-    if AppConfig.IS_DEVELOPMENT:
-        # 开发环境下为了方便调试，使用固定用户标识
-        print(f"[DEBUG] 开发环境，使用dev_user")
-        return "dev_user"
-    
-    # 生产环境：优先使用X-Forwarded-For头部，避免VPN导致的IP变化问题
-    # 如果VPN导致IP频繁变化，可以考虑使用其他稳定的标识方式
-    user_ip = request.headers.get("X-Forwarded-For", request.client.host)
-    if "," in user_ip:
-        # X-Forwarded-For可能包含多个IP，取第一个
-        user_ip = user_ip.split(",")[0].strip()
-    
-    # VPN兼容方案：如果检测到IP变化频繁，使用更稳定的标识
-    # 这里可以添加基于User-Agent或其他稳定特征的标识逻辑
-    # 暂时先使用IP，但添加VPN检测提示
-    
-    print(f"[DEBUG] 生产环境，使用IP: {user_ip}")
-    print(f"[DEBUG] X-Forwarded-For: {request.headers.get('X-Forwarded-For', 'None')}")
-    print(f"[DEBUG] Client Host: {request.client.host}")
-    print(f"[DEBUG] User-Agent: {request.headers.get('User-Agent', 'None')[:50]}...")
-    print(f"[DEBUG] ===== 用户标识获取完成 =====")
-    return user_ip
+    if session_id:
+        print(f"[DEBUG] 找到现有session_id: {session_id}")
+        return session_id
+    else:
+        # 生成新的session_id
+        import uuid
+        import time
+        new_session_id = uuid.uuid4().hex
+        session_creation_times[new_session_id] = time.time()
+        print(f"[DEBUG] 生成新session_id: {new_session_id}")
+        return new_session_id
 
 # 用户记忆管理器 - 简化为直接使用Agent架构
 user_memory_managers: Dict[str, Any] = {}
 
 # 海王对战历史管理 - 只保存上一轮对话
 seaking_last_conversations: Dict[str, str] = {}
+
+# Session管理 - 记录session创建时间，用于TTL清理
+session_creation_times: Dict[str, float] = {}
+
+def cleanup_expired_sessions():
+    """清理过期的session和相关数据"""
+    import time
+    current_time = time.time()
+    ttl_seconds = AppConfig.SESSION_TTL_DAYS * 24 * 3600
+    
+    expired_sessions = []
+    for session_id, creation_time in session_creation_times.items():
+        if current_time - creation_time > ttl_seconds:
+            expired_sessions.append(session_id)
+    
+    for session_id in expired_sessions:
+        # 清理session相关数据
+        session_creation_times.pop(session_id, None)
+        user_memory_managers.pop(session_id, None)
+        seaking_last_conversations.pop(session_id, None)
+        print(f"[DEBUG] 清理过期session: {session_id}")
+    
+    if expired_sessions:
+        print(f"[DEBUG] 清理了 {len(expired_sessions)} 个过期session")
 
 class ChatRequest(BaseModel):
     message: str
@@ -187,28 +194,57 @@ def parse_seaking_score(ai_response: str, prev_score: int, is_first_round: bool 
         return prev_score, prev_score >= 100
 
 @app.get("/")
-async def read_index():
+async def read_index(req: Request):
     """主页面"""
     response = FileResponse('static/index_modern.html')
     if AppConfig.IS_DEVELOPMENT:
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "0"
+    
+    # 检查是否需要设置session_id cookie
+    if not req.cookies.get("sid"):
+        user_ip = get_user_identifier(req)
+        response.set_cookie(
+            key="sid", 
+            value=user_ip, 
+            max_age=7*24*3600,  # 7天过期
+            httponly=True,
+            secure=False,  # 开发环境设为False，生产环境可设为True
+            samesite="lax"
+        )
+    
     return response
 
 @app.get("/chat")
-async def read_chat():
+async def read_chat(req: Request):
     """聊天页面"""
     response = FileResponse('static/chat.html')
     if AppConfig.IS_DEVELOPMENT:
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "0"
+    
+    # 检查是否需要设置session_id cookie
+    if not req.cookies.get("sid"):
+        user_ip = get_user_identifier(req)
+        response.set_cookie(
+            key="sid", 
+            value=user_ip, 
+            max_age=AppConfig.SESSION_TTL_DAYS*24*3600,  # 使用配置的TTL
+            httponly=True,
+            secure=False,  # 开发环境设为False，生产环境可设为True
+            samesite="lax"
+        )
+    
     return response
 
 @app.post("/chat")
 async def chat(request: ChatRequest, req: Request):
     """聊天端点 - 支持直接海王对战和正常Agent模式"""
+    # 定期清理过期session
+    cleanup_expired_sessions()
+    
     user_ip = get_user_identifier(req)
     
     try:
@@ -218,10 +254,27 @@ async def chat(request: ChatRequest, req: Request):
         
         # 🌊 检查是否为海王对战模式
         if request.button_type and AppConfig.is_seaking_mode(request.button_type):
-            return await handle_seaking_mode(request, memory_manager, user_ip)
+            response_data = await handle_seaking_mode(request, memory_manager, user_ip)
+        else:
+            # 正常聊天模式 - 使用同步优化逻辑
+            response_data = handle_normal_chat(request, memory_manager, agent)
         
-        # 正常聊天模式 - 使用同步优化逻辑
-        return handle_normal_chat(request, memory_manager, agent)
+        # 检查是否需要设置session_id cookie
+        if not req.cookies.get("sid"):
+            # 创建响应对象并设置cookie
+            from fastapi.responses import JSONResponse
+            response = JSONResponse(content=response_data)
+            response.set_cookie(
+                key="sid", 
+                value=user_ip, 
+                max_age=AppConfig.SESSION_TTL_DAYS*24*3600,  # 使用配置的TTL
+                httponly=True,
+                secure=False,  # 开发环境设为False，生产环境可设为True
+                samesite="lax"
+            )
+            return response
+        
+        return response_data
         
     except Exception as e:
         print(f"[Error] Chat processing failed: {e}")
