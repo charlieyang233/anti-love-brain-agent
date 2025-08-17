@@ -234,8 +234,12 @@ async def handle_seaking_mode(request: ChatRequest, memory_manager, user_ip: str
         # 获取上一轮对话 - 使用后端独立维护的海王对话历史
         last_conversation = seaking_last_conversations.get(user_ip, "（这是第一轮对话）")
         is_first_round = last_conversation == "（这是第一轮对话）"
-        print(f"[DEBUG] 海王模式上一轮对话: {last_conversation}")
-        print(f"[DEBUG] 是否第一轮: {is_first_round}")
+        print(f"[DEBUG] ===== 海王模式对话历史检查 =====")
+        print(f"[DEBUG] 用户IP: {user_ip}")
+        print(f"[DEBUG] 当前seaking_last_conversations内容: {dict(seaking_last_conversations)}")
+        print(f"[DEBUG] 本用户的上一轮对话: {repr(last_conversation)}")
+        print(f"[DEBUG] 是否为第一轮: {is_first_round}")
+        print(f"[DEBUG] ===== 对话历史检查结束 =====")
         
         # 直接调用SeakingChain
         ai_response = seaking_chain.run(
@@ -264,8 +268,8 @@ async def handle_seaking_mode(request: ChatRequest, memory_manager, user_ip: str
             # 通关后清除对话历史
             seaking_last_conversations.pop(user_ip, None)
         else:
-            # 保存当前完整对话作为下一轮的参考
-            # 格式：海王：xxx\n用户：xxx（这样下一轮拽姐可以对用户这轮的回复进行打分）
+            # 保存当前对话历史供下一轮使用
+            # 无论是否第一轮，都需要保存本轮对话给下轮使用
             
             # 提取海王的回复（在【海王】和【拽姐旁白】之间的内容）
             seaking_reply = ""
@@ -284,6 +288,7 @@ async def handle_seaking_mode(request: ChatRequest, memory_manager, user_ip: str
             conversation_record = f"海王：{seaking_reply}\n用户：{request.message}"
             seaking_last_conversations[user_ip] = conversation_record
             print(f"[DEBUG] 保存对话历史: {conversation_record}")
+            print(f"[DEBUG] 保存本轮对话历史供下轮使用")
         
         # 海王对战模式不更新全局记忆，避免影响正常聊天
         
