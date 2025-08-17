@@ -49,9 +49,21 @@ def get_user_identifier(request: Request) -> str:
         print(f"[DEBUG] 开发环境，使用dev_user")
         return "dev_user"
     
-    # 生产环境使用真实IP
-    user_ip = request.client.host
-    print(f"[DEBUG] 生产环境，使用真实IP: {user_ip}")
+    # 生产环境：优先使用X-Forwarded-For头部，避免VPN导致的IP变化问题
+    # 如果VPN导致IP频繁变化，可以考虑使用其他稳定的标识方式
+    user_ip = request.headers.get("X-Forwarded-For", request.client.host)
+    if "," in user_ip:
+        # X-Forwarded-For可能包含多个IP，取第一个
+        user_ip = user_ip.split(",")[0].strip()
+    
+    # VPN兼容方案：如果检测到IP变化频繁，使用更稳定的标识
+    # 这里可以添加基于User-Agent或其他稳定特征的标识逻辑
+    # 暂时先使用IP，但添加VPN检测提示
+    
+    print(f"[DEBUG] 生产环境，使用IP: {user_ip}")
+    print(f"[DEBUG] X-Forwarded-For: {request.headers.get('X-Forwarded-For', 'None')}")
+    print(f"[DEBUG] Client Host: {request.client.host}")
+    print(f"[DEBUG] User-Agent: {request.headers.get('User-Agent', 'None')[:50]}...")
     print(f"[DEBUG] ===== 用户标识获取完成 =====")
     return user_ip
 
