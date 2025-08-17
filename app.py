@@ -231,9 +231,11 @@ async def handle_seaking_mode(request: ChatRequest, memory_manager, user_ip: str
         from src.tools.seaking import SeakingChain
         seaking_chain = SeakingChain()
         
-        # 获取上一轮对话
+        # 获取上一轮对话 - 使用后端独立维护的海王对话历史
         last_conversation = seaking_last_conversations.get(user_ip, "（这是第一轮对话）")
         is_first_round = last_conversation == "（这是第一轮对话）"
+        print(f"[DEBUG] 海王模式上一轮对话: {last_conversation}")
+        print(f"[DEBUG] 是否第一轮: {is_first_round}")
         
         # 直接调用SeakingChain
         ai_response = seaking_chain.run(
@@ -567,8 +569,8 @@ async def get_seaking_personas():
         with open(personas_file, 'r', encoding='utf-8') as f:
             personas_data = json.load(f)
         
+        # 直接返回人设数据，保持与前端期望的结构一致
         return personas_data
-        
     except Exception as e:
         print(f"[Error] Get seaking personas failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))

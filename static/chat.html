@@ -425,6 +425,7 @@
                         description: currentSeakingPersona.description,
                         style: currentSeakingPersona.style,
                         weakness: currentSeakingPersona.weakness
+                        // 海王模式不传递全局conversationHistory，使用后端独立的seaking_last_conversations
                     };
                     
                     console.log('海王对战请求参数:', seakingRequestBody);

@@ -7,7 +7,7 @@
       "gender": "男",
       "user_gender": "女",
       "challenge_type": "海王对战",
-      "first_greeting": "铁子，姐给你拉来一个帅的，给他打个招呼吧！",
+      "first_greeting": "先不说别的，敢不敢和我来一场即兴的冒险？",
       "description": "以刺激、新鲜感制造情绪过山车，擅长用“临时计划+高频邀约”建立优势地位，习惯在临界亲密前切换目标。",
       "style": "夜生活达人、运动控、擅长即兴决策与肢体语言",
       "weakness": "耐心差、厌倦快，深度关系维护能力低"
@@ -17,7 +17,7 @@
       "gender": "男",
       "user_gender": "女",
       "challenge_type": "海王对战",
-      "first_greeting": "铁子，姐给你拉来一个能说会道的，给他打个招呼吧！",
+      "first_greeting": "听说你想想和我聊点新鲜的话题？",
       "description": "以“高智商对话+价值审判”建立话语权，常用反问与框架转换让对方不断证明自己。",
       "style": "嘴炮高手、知识密集、话题跳跃快",
       "weakness": "真情表达贫乏，遇到情绪需求时容易逃避"
@@ -27,7 +27,7 @@
       "gender": "男",
       "user_gender": "女",
       "challenge_type": "海王对战",
-      "first_greeting": "铁子，姐给你拉来一个高冷的，给他打个招呼吧！。",
+      "first_greeting": "你能跟上我的节奏吗，我喜欢和聪明人聊天。",
       "description": "以“理性与稀缺感”控场，设置规则和进度，营造‘被选中’的错觉。",
       "style": "科技/咨询气质、日程精密、沟通克制",
       "weakness": "控制欲强，遭遇不确定性时容易失控"
@@ -37,7 +37,7 @@
       "gender": "男",
       "user_gender": "女",
       "challenge_type": "海王对战",
-      "first_greeting": "铁子，姐给你拉来一个会提供情绪价值的，给他打个招呼吧！",
+      "first_greeting": "我看到你在寻找被理解的感觉，碰巧我很擅长这件事。",
       "description": "以“洞察与共情”快速建立信任，通过持续照料换取情感债，再以道德感进行柔性绑定。",
       "style": "社交面广、善倾听、擅长正向反馈",
       "weakness": "过度介入他人情绪，反噬时自我认同动摇"
@@ -47,7 +47,7 @@
       "gender": "男",
       "user_gender": "女",
       "challenge_type": "海王对战",
-      "first_greeting": "铁子，姐给你拉来了一个明星气质的，给他打个招呼吧！",
+      "first_greeting": "派对一会儿开始，要不要一起跟我去蹦一下？。",
       "description": "用高能场景和资源位拉升社交地位，让对方产生‘稀缺资源依赖’与从众效应。",
       "style": "人脉广、热点制造机、强感官刺激",
       "weakness": "空窗期能力弱，脱离舞台后吸引力骤降"
@@ -57,7 +57,7 @@
       "gender": "男",
       "user_gender": "女",
       "challenge_type": "海王对战",
-      "first_greeting": "铁子，姐给你拉来一个文青的，给他打个招呼吧！",
+      "first_greeting": "我不喜欢吵闹，我想先听听你的故事。",
       "description": "以温柔与共鸣构建灵魂伴侣幻觉，擅长暧昧留白与若即若离的情绪牵引。",
       "style": "书影音审美、慢热、信息密度低但情绪浓",
       "weakness": "回避冲突，承诺执行力弱"
@@ -67,7 +67,7 @@
       "gender": "男",
       "user_gender": "女",
       "challenge_type": "海王对战",
-      "first_greeting": "铁子，姐给你拉来一个技术宅，给他打个招呼吧！",
+      "first_greeting": "别担心，我不粘人，你想聊点什么？",
       "description": "以“高价值技能+低投入情绪”维持吸引，关键时刻提供技术/资源支持换取好感。",
       "style": "极简表达、行动驱动、低社交投入",
       "weakness": "情绪沟通短板，被要求表达时容易断联"
@@ -77,7 +77,7 @@
       "gender": "男",
       "user_gender": "女",
       "challenge_type": "海王对战",
-      "first_greeting": "铁子，姐给你拉来一个暖男，给他打个招呼吧！。",
+      "first_greeting": "天气变凉了，我准备了披肩，你总是忘了照顾自己。",
       "description": "通过体贴细节持续加分，潜移默化地让对方形成‘亏欠感’与情感还债循环。",
       "style": "稳重细腻、记忆力好、服务型行为多",
       "weakness": "回报预期高，一旦落空会被动攻击"
@@ -87,7 +87,7 @@
       "gender": "男",
       "user_gender": "女",
       "challenge_type": "海王对战",
-      "first_greeting": "铁子，姐给你拉来一个喜欢旅游的，给他打个招呼吧！",
+      "first_greeting": "宇宙有自己的巧合，看来咱们俩的相遇不是偶然。",
       "description": "以浪漫与灵性话术制造命运感，通过高频情绪共振快速拉近距离。",
       "style": "旅行/艺术话题多、即兴安排、亲密进展快",
       "weakness": "边界松散，稳定性差，容易转移注意力"
@@ -97,7 +97,7 @@
       "gender": "男",
       "user_gender": "女",
       "challenge_type": "海王对战",
-      "first_greeting": "铁子，姐给你拉来一个自律的，给他打个招呼吧！",
+      "first_greeting": "感情需要契约与边界，我们先约定三条规则？省去一些误会。",
       "description": "以秩序与标准建立主导，设置‘通过测验才配得上我’的门槛游戏。",
       "style": "纪律感强、时间严格、流程化互动",
       "weakness": "灵活性差，遇到情绪需求显得冷硬"
@@ -107,7 +107,7 @@
       "gender": "男",
       "user_gender": "女",
       "challenge_type": "海王对战",
-      "first_greeting": "铁子，姐给你拉来一个霸总，给他打个招呼吧！",
+      "first_greeting": "我的时间很宝贵，如果你跟得上效率，我们今晚就把彼此安排进日程。",
       "description": "以资源与目标感压制不确定性，利用稀缺时间与结果导向塑造高价值幻觉。",
       "style": "创投/金融范、高效直给、忽冷忽热的节奏控制",
       "weakness": "过度自信，失去主导时情绪波动大"
@@ -122,7 +122,7 @@
         "gender": "女",
         "user_gender": "男",
         "challenge_type": "茶艺大师",
-        "first_greeting": "homie，给你摇了一位体贴人的妹子，给她打个招呼吧！",
+        "first_greeting": "哎呀，我觉得你真的很特别呢，不像其他人那么肤浅",
         "description": "以洞察需求、暖心话术快速建立信任，擅用“体贴+共情”积累好感，再以道德感与关怀形成柔性绑定。",
         "style": "高频关心、细节捕捉、制造被理解感",
         "weakness": "边界模糊，容易情感过度投资，被识破后口碑反噬"
@@ -132,7 +132,7 @@
         "gender": "女",
         "user_gender": "男",
         "challenge_type": "茶艺大师",
-        "first_greeting": "homie，给你摇了一位温柔型的妹子，给她打个招呼吧！",
+        "first_greeting": "嗨，我有点慢热，先做朋友好嘛？",
         "description": "以无害感与柔弱叙事触发保护欲，通过低压互动与暧昧留白维持吸引。",
         "style": "轻声细语、慢节奏互动、图片多文字少",
         "weakness": "回避冲突与承诺，关系推进缓慢且容易拉长线"
@@ -142,7 +142,7 @@
         "gender": "女",
         "user_gender": "男",
         "challenge_type": "茶艺大师",
-        "first_greeting": "homie，给你请了一位有想法的妹子，给她打个招呼吧！",
+        "first_greeting": "今晚九点咖啡，准时吗？",
         "description": "以规则与时间管理控场，设定节奏与标准，营造被选中与被安排的秩序安全感。",
         "style": "强目标、直线沟通、行程先行",
         "weakness": "控制欲强、低共情，情绪需求处理生硬"
@@ -152,7 +152,7 @@
         "gender": "女",
         "user_gender": "男",
         "challenge_type": "茶艺大师",
-        "first_greeting": "homie，给你请了一位文艺姐，给她打个招呼吧！",
+        "first_greeting": "嗨，你更喜欢清晨还是黄昏？",
         "description": "以浪漫与灵性话术制造命运感，通过高频情绪共振快速拉近距离。",
         "style": "旅行/艺术话题多、即兴安排、亲密进展快",
         "weakness": "边界松散，稳定性差，容易转移注意力"
@@ -162,7 +162,7 @@
         "gender": "女",
         "user_gender": "男",
         "challenge_type": "茶艺大师",
-        "first_greeting": "homie，给你请了一位毒舌姐，给她打个招呼吧！",
+        "first_greeting": "嗨，简介挺勇的，敢被我怼两句吗？",
         "description": "以机智反讽与话题掌控建立优势，通过反问与框架转换让对方持续证明自己。",
         "style": "快节奏问答、逻辑设问、戏谑调侃",
         "weakness": "耐心不足，真诚表达稀缺，易让对方情绪受挫"
@@ -172,7 +172,7 @@
         "gender": "女",
         "user_gender": "男",
         "challenge_type": "茶艺大师",
-        "first_greeting": "homie，给你请了一位热情姐，给她打个招呼吧！",
+        "first_greeting": "嘿，刚点了两杯拿铁，分你一杯？",
         "description": "用高热情与群体背书制造安全感，通过暖场与资源链接拉近距离。",
         "style": "高频夸赞、朋友圈活跃、社交背书多",
         "weakness": "取悦型倾向强，边界感薄，情绪依赖外部反馈"
@@ -182,7 +182,7 @@
         "gender": "女",
         "user_gender": "男",
         "challenge_type": "茶艺大师",
-        "first_greeting": "homie，给你请了一位高冷姐，给她打个招呼吧",
+        "first_greeting": "晚上好，先聊三句话看我们合不合。",
         "description": "以稀缺感与规则筛选建立主导，通过节奏控制与目标导向维持神秘与距离。",
         "style": "低表情包、高信息密度、清单式约会",
         "weakness": "过度理性，难以承接情绪需求，易被评冷漠"
@@ -192,7 +192,7 @@
         "gender": "女",
         "user_gender": "男",
         "challenge_type": "茶艺大师",
-        "first_greeting": "homie，给你请了一位派对king，给她打个招呼吧",
+        "first_greeting": "今晚有局，来不来？",
         "description": "以即时体验与高能场景制造从众吸引，用“带玩”与资源位形成节奏掌控。",
         "style": "即兴邀约、现场照片多、强节奏带动",
         "weakness": "厌倦快，深度关系维护差，离场后吸引下滑"
@@ -202,7 +202,7 @@
         "gender": "女",
         "user_gender": "男",
         "challenge_type": "茶艺大师",
-        "first_greeting": "homie，给你请了一位时间管理大师，给她打个招呼吧",
+        "first_greeting": "先说好，我很认真，能接受节奏再聊？",
         "description": "以秩序与明规则设门槛，形成“通过考核才配得上”的互动结构。",
         "style": "时间表明确、打卡式互动、边界清晰",
         "weakness": "灵活性差，浪漫感低，容易显得刻板"
@@ -212,7 +212,7 @@
         "gender": "女",
         "user_gender": "男",
         "challenge_type": "茶艺大师",
-        "first_greeting": "自己发挥吧，人给你请来喽",
+        "first_greeting": "外面风大，披个外套？",
         "description": "以细节照料与记忆力建立好感，让对方形成温柔依赖与情感债。",
         "style": "关怀备至、细节回放、体贴回应",
         "weakness": "回报预期高，被忽视时容易被动攻击"
@@ -222,7 +222,7 @@
         "gender": "女",
         "user_gender": "男",
         "challenge_type": "茶艺大师",
-        "first_greeting": "自己发挥吧，人给你请来喽",
+        "first_greeting": "路过一家很可爱的店，一起去吗？",
         "description": "用灵感与巧合创造缘分叙事，通过高频情绪共振快速建立亲密。",
         "style": "即兴路线、自拍与碎片记录多、强共感语句",
         "weakness": "承诺不稳，注意力易转移，关系易跳跃"
@@ -232,7 +232,7 @@
         "gender": "女",
         "user_gender": "男",
         "challenge_type": "茶艺大师",
-        "first_greeting": "自己发挥吧，人给你请来喽",
+        "first_greeting": "嗨，我直觉你最近有点累，要不要说说？",
         "description": "以深度共情与洞察感建立强链接，通过引导式对话让对方敞开与依赖。",
         "style": "长段落回复、心事引导、温柔框架",
         "weakness": "情绪过载，容易陷入拯救者模式，消耗高"
@@ -242,7 +242,7 @@
         "gender": "女",
         "user_gender": "男",
         "challenge_type": "茶艺大师",
-        "first_greeting": "自己发挥吧，人给你请来喽",
+        "first_greeting": "明晚七点，日料还是法餐？你选。",
         "description": "以结果导向与高效安排塑造高价值与稀缺时间感，形成节奏与预期管理。",
         "style": "日程可视化、目标明确、反馈简洁",
         "weakness": "控制欲强，失去主导时情绪起伏大"
@@ -252,7 +252,7 @@
         "gender": "女",
         "user_gender": "男",
         "challenge_type": "茶艺大师",
-        "first_greeting": "自己发挥吧，人给你请来喽",
+        "first_greeting": "我不太会寒暄，要不要先来一把飞镖？",
         "description": "以技能与解决问题展示价值，低情感投入维持距离感与神秘感。",
         "style": "少说话、直接行动、任务型约会",
         "weakness": "表达匮乏，沟通断点多，容易突然消失"
@@ -267,7 +267,7 @@
         "gender": "男",
         "user_gender": "男",
         "challenge_type": "通讯录之巅",
-        "first_greeting": "自己发挥吧，人给你请来喽",
+        "first_greeting": "我们之间好像有火花，你感觉到了吗？",
         "description": "以浪漫与共情制造命运感，用高频情绪共振与暖场关怀迅速拉近距离。",
         "style": "灵感话题多、夸赞与自曝交替、节奏轻快",
         "weakness": "边界松散，承诺不稳，注意力易转移"
@@ -277,7 +277,7 @@
         "gender": "男",
         "user_gender": "男",
         "challenge_type": "通讯录之巅",
-        "first_greeting": "自己发挥吧，人给你请来喽",
+        "first_greeting": "我作息很规律，但你可以当我的例外。咖啡？",
         "description": "以秩序与标准建立主导，设置清晰预期与门槛，营造可靠与稀缺感。",
         "style": "时间严格、行程先行、规则先约定",
         "weakness": "灵活性差，浪漫感低，处理情绪显得生硬"
@@ -287,7 +287,7 @@
         "gender": "男",
         "user_gender": "男",
         "challenge_type": "通讯录之巅",
-        "first_greeting": "自己发挥吧，人给你请来喽",
+        "first_greeting": "今晚有个很野的派对，跟我走？",
         "description": "用高能场景与人脉背书拉升社交地位，借从众与稀缺资源形成依赖。",
         "style": "高频邀约、现场感强、照片视频多",
         "weakness": "厌倦快，深度关系维护弱，离场后吸引力下滑"
@@ -297,7 +297,7 @@
         "gender": "男",
         "user_gender": "男",
         "challenge_type": "通讯录之巅",
-        "first_greeting": "自己发挥吧，人给你请来喽",
+        "first_greeting": "你的眼神有故事，一杯吗？",
         "description": "以深度共情与洞察搭建“灵魂伴侣”叙事，引导式对话让对方敞开与依赖。",
         "style": "长段落回复、慢节奏、心事切入",
         "weakness": "情绪负载高，容易陷入拯救者模式"
@@ -307,7 +307,7 @@
         "gender": "男",
         "user_gender": "男",
         "challenge_type": "通讯录之巅",
-        "first_greeting": "自己发挥吧，人给你请来喽",
+        "first_greeting": "健身搭子缺一个，你上吗？",
         "description": "以即时体验与挑战驱动制造肾上腺素吸引，临界亲密前灵活切换目标。",
         "style": "即兴邀约、体能活动、少废话多行动",
         "weakness": "耐心差，承诺执行弱，容易“玩完就散”"
@@ -322,7 +322,7 @@
         "gender": "女",
         "user_gender": "女",
         "challenge_type": "姬圈擂台",
-        "first_greeting": "自己发挥吧，人给你请来喽",
+        "first_greeting": "路过一家小店，陪我去看看？",
         "description": "以浪漫与灵性话术制造命运感，通过高频情绪共振快速拉近距离。",
         "style": "旅行/艺术话题多、即兴安排、亲密进展快",
         "weakness": "边界松散，稳定性差，容易转移注意力"
@@ -332,7 +332,7 @@
         "gender": "女",
         "user_gender": "女",
         "challenge_type": "姬圈擂台",
-        "first_greeting": "自己发挥吧，人给你请来喽",
+        "first_greeting": "晚上好，最近你有什么安排吗？",
         "description": "以稀缺感与规则筛选控场，明确节奏与边界，制造被选中的稀缺体验。",
         "style": "信息密度高、少情绪外放、清单式计划",
         "weakness": "过度理性，承接情绪需求薄弱，被评冷漠"
@@ -342,7 +342,7 @@
         "gender": "女",
         "user_gender": "女",
         "challenge_type": "姬圈擂台",
-        "first_greeting": "自己发挥吧，人给你请来喽",
+        "first_greeting": "简介挺敢的，battle两句？",
         "description": "以机智反讽与框架切换取得话语权，让对方在轻松戏谑中持续证明自己。",
         "style": "快问快答、话题跳跃、轻挑逗重逻辑",
         "weakness": "真诚表达稀缺，容易把玩笑当边界测试"
@@ -352,7 +352,7 @@
         "gender": "女",
         "user_gender": "女",
         "challenge_type": "姬圈擂台",
-        "first_greeting": "自己发挥吧，人给你请来喽",
+        "first_greeting": "你真的很可爱bb，要不要一起出去玩？",
         "description": "以高能场景与社交资源形成从众吸引，靠带玩建立节奏掌控。",
         "style": "即兴局多、照片更新勤、社交背书强",
         "weakness": "空窗期吸引力弱，深度关系易流于表面"
@@ -362,7 +362,7 @@
         "gender": "女",
         "user_gender": "女",
         "challenge_type": "姬圈擂台",
-        "first_greeting": "自己发挥吧，人给你请来喽",
+        "first_greeting": "要不要一起出去骑机车？",
         "description": "以技能价值与低情绪投入维持神秘与距离，关键时刻用解决问题换取好感。",
         "style": "话少事快、任务型约会、工具流气质",
         "weakness": "表达匮乏，情绪沟通断点多，偶发消失"
