@@ -4,8 +4,7 @@ from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from ..prompts.prompts import GLOBAL_SYSTEM_PROMPT
 from .config import llm
 from ..memory.memory_manager import SmartMemoryManager
-# from ..tools.severity import SeverityTool  # 已移除：现在在app.py中直接进行预分析
-from ..tools.help import HelpTool
+# from ..tools.severity import SeverityTool  # 已移除：现在在app.py中直接进行预分析 
 
 from ..tools.talk import TalkTool
 
@@ -28,7 +27,6 @@ def build_agent(memory_manager=None, answer_style: str = "") -> AgentExecutor:
     # 注意：SeakingTool已被重构为SeakingChain，不再用于Agent工具列表
     
     tools = [
-        HelpTool(),
         TalkTool(),
     ]
 
