@@ -962,6 +962,21 @@ body {
     .persona-modes {
         flex-wrap: wrap;
         gap: 6px;
+        /* 添加这些属性确保能够自适应 */
+        min-width: 0;
+        overflow: hidden;
+    }
+    
+    /* 重点：确保 persona-option 能够自适应 */
+    .persona-option {
+        font-size: 11px;
+        padding: 3px 8px;
+        min-width: 0; /* 允许缩小 */
+        flex-shrink: 1; /* 允许收缩 */
+        white-space: nowrap; /* 防止文字换行 */
+        overflow: hidden; /* 隐藏溢出 */
+        text-overflow: ellipsis; /* 文字过长显示省略号 */
+        max-width: 100%; /* 限制最大宽度 */
     }
     
     /* 海王得分指示器在小屏幕上的样式调整 */
@@ -970,6 +985,8 @@ body {
         font-size: 11px;
         padding: 3px 10px;
         margin-top: 4px;
+        min-width: 0; /* 添加这个 */
+        flex-shrink: 1; /* 添加这个 */
     }
     
     .seaking-score-inline .seaking-score-progress {
@@ -984,6 +1001,7 @@ body {
         height: auto;
         min-height: 35px;
         padding: 6px 10px;
+        min-width: 0; /* 添加这个 */
     }
     
     .meter-header {
